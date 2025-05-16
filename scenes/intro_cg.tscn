@@ -1,0 +1,46 @@
+[gd_scene load_steps=2 format=3 uid="uid://pj8tikmxsbw5"]
+
+[ext_resource type="Script" uid="uid://bbfiscv8u582q" path="res://scripts/intro_cg.gd" id="1_eoaxg"]
+
+[node name="IntroScene" type="CanvasLayer"]
+script = ExtResource("1_eoaxg")
+
+[node name="Background" type="TextureRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="TextContainer" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DialogText" type="Label" parent="TextContainer"]
+custom_minimum_size = Vector2(800, 200)
+layout_mode = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="SkipButton" type="Button" parent="."]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -109.0
+offset_top = -614.0
+offset_right = -29.0
+offset_bottom = -583.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "跳过"
+
+[node name="ClickSound" type="AudioStreamPlayer" parent="."]
+volume_db = -10.0

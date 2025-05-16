@@ -1,0 +1,222 @@
+[gd_scene load_steps=7 format=3 uid="uid://bfavtpgllttld"]
+
+[ext_resource type="Script" uid="uid://crdkyv7wgipj3" path="res://scripts/office_cg.gd" id="1_owpqs"]
+[ext_resource type="Texture2D" uid="uid://e2qmj8skuv15" path="res://assets/CG/open2/elevator_gao.png" id="2_ghdm0"]
+[ext_resource type="AudioStream" uid="uid://fnpn6clh1xus" path="res://assets/CG/open/click.mp3" id="3_xtbej"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1fkno"]
+bg_color = Color(0.152941, 0.152941, 0.211765, 0)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.819608, 0.819608, 0.819608, 0.2)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_f7rxp"]
+bg_color = Color(0.101961, 0.101961, 0.141176, 0.882353)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.819608, 0.819608, 0.819608, 0.501961)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rj3xq"]
+bg_color = Color(0.117647, 0.117647, 0.188235, 0.921569)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.564706, 0.486275, 0.25098, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.180392)
+shadow_size = 5
+shadow_offset = Vector2(2, 2)
+
+[node name="OfficeCG" type="CanvasLayer"]
+script = ExtResource("1_owpqs")
+
+[node name="Background" type="TextureRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_ghdm0")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="DialogBox" type="Panel" parent="."]
+anchors_preset = -1
+anchor_top = 0.75
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_1fkno")
+
+[node name="SpeakerLabel" type="Label" parent="DialogBox"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -130.0
+offset_top = 6.0
+offset_right = 130.0
+offset_bottom = 37.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 0.8, 0, 1)
+theme_override_font_sizes/font_size = 20
+text = "高云峰"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Separator" type="Label" parent="DialogBox"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -130.0
+offset_top = 32.0
+offset_right = 130.0
+offset_bottom = 55.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "——"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DialogText" type="RichTextLabel" parent="DialogBox"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 30.0
+offset_top = 60.0
+offset_right = -30.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/normal_font_size = 20
+bbcode_enabled = true
+text = "对话文本将在这里显示，使用打字机效果逐字显示。"
+scroll_active = false
+autowrap_mode = 2
+text_direction = 1
+
+[node name="ContinueIndicator" type="Label" parent="DialogBox"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -50.0
+offset_top = -40.0
+offset_right = -20.0
+offset_bottom = -15.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 16
+text = "▼"
+
+[node name="CardSelectionPanel" type="Panel" parent="."]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -150.0
+offset_right = 200.0
+offset_bottom = 150.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_f7rxp")
+
+[node name="TitleLabel" type="Label" parent="CardSelectionPanel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -170.0
+offset_top = 20.0
+offset_right = 170.0
+offset_bottom = 60.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 24
+text = "特权卡选择"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ResultLabel" type="RichTextLabel" parent="CardSelectionPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -170.0
+offset_top = -40.0
+offset_right = 170.0
+offset_bottom = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/normal_font_size = 20
+bbcode_enabled = true
+text = "[center]请抽取一张特权卡[/center]"
+fit_content = true
+scroll_active = false
+autowrap_mode = 2
+text_direction = 1
+
+[node name="DrawCardButton" type="Button" parent="CardSelectionPanel"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -100.0
+offset_top = -80.0
+offset_right = 100.0
+offset_bottom = -30.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_rj3xq")
+text = "抽取特权卡"
+
+[node name="ConfirmButton" type="Button" parent="CardSelectionPanel"]
+visible = false
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -100.0
+offset_top = -80.0
+offset_right = 100.0
+offset_bottom = -30.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_rj3xq")
+text = "确认"
+
+[node name="ClickSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_xtbej")
+volume_db = -10.0

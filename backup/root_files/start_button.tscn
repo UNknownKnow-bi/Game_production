@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3 uid="uid://w7w4ym6xx20"]
+
+[ext_resource type="StyleBox" uid="uid://by18p7c0e67l1" path="res://textures/start_button.tres" id="1_jc7n6"]
+[ext_resource type="StyleBox" uid="uid://coj3wqxfehwtp" path="res://textures/start_button_pressed.tres" id="2_7kbur"]
+
+[node name="StartButton" type="Button"]
+custom_minimum_size = Vector2(200, 80)
+offset_left = 490.0
+offset_top = 474.0
+offset_right = 690.0
+offset_bottom = 554.0
+theme_override_colors/font_hover_pressed_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 24
+theme_override_styles/focus = ExtResource("1_jc7n6")
+theme_override_styles/hover = ExtResource("1_jc7n6")
+theme_override_styles/pressed = ExtResource("2_7kbur")
+theme_override_styles/normal = ExtResource("1_jc7n6")
+text = "开始游戏"
