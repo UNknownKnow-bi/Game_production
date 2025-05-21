@@ -1,0 +1,74 @@
+[gd_scene load_steps=6 format=3 uid="uid://dttjc7sij5lpw"]
+
+[ext_resource type="Script" uid="uid://coogp1daqwk64" path="res://scripts/workday_new/event_system_new.gd" id="1_ufkgr"]
+[ext_resource type="PackedScene" uid="uid://cw2c1p6jqhpmg" path="res://scenes/workday_new/components/event_panel.tscn" id="2_bxoue"]
+[ext_resource type="Texture2D" uid="uid://roavehrf7pv8" path="res://assets/workday_new/ui/events/character.png" id="3_08iqt"]
+[ext_resource type="Texture2D" uid="uid://cuir1qj2l7usq" path="res://assets/workday_new/ui/events/random.png" id="4_4g2lq"]
+[ext_resource type="Texture2D" uid="uid://b4cxuep0ravg0" path="res://assets/workday_new/ui/events/daily.png" id="5_r4qqn"]
+
+[node name="EventSystem" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -51.0
+offset_top = -111.0
+offset_right = -51.0
+offset_bottom = -111.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.989958, 0.999614)
+mouse_filter = 1
+script = ExtResource("1_ufkgr")
+left_panel_position = Vector2(283.71, 635.058)
+middle_panel_position = Vector2(917.04, 1109.56)
+right_panel_position = Vector2(1118.61, 561.054)
+left_panel_size = Vector2(426, 980)
+middle_panel_size = Vector2(1129, 1919)
+right_panel_size = Vector2(821, 840)
+
+[node name="LeftPanel" parent="." instance=ExtResource("2_bxoue")]
+custom_minimum_size = Vector2(361, 746)
+layout_mode = 0
+offset_left = 70.7101
+offset_top = 145.056
+offset_right = 496.71
+offset_bottom = 1125.06
+scale = Vector2(0.6, 0.6)
+panel_texture = ExtResource("3_08iqt")
+
+[node name="EventFrame" parent="LeftPanel" index="0"]
+offset_left = -277.002
+offset_right = 277.998
+offset_bottom = -0.00402832
+texture = ExtResource("3_08iqt")
+
+[node name="MiddlePanel" parent="." instance=ExtResource("2_bxoue")]
+custom_minimum_size = Vector2(661, 1130)
+layout_mode = 0
+offset_left = 352.54
+offset_top = 150.058
+offset_right = 1481.54
+offset_bottom = 2069.06
+scale = Vector2(0.3, 0.3)
+panel_texture = ExtResource("4_4g2lq")
+
+[node name="EventFrame" parent="MiddlePanel" index="0"]
+texture = ExtResource("4_4g2lq")
+
+[node name="RightPanel" parent="." instance=ExtResource("2_bxoue")]
+custom_minimum_size = Vector2(821, 840)
+layout_mode = 0
+offset_left = 708.111
+offset_top = 141.054
+offset_right = 1529.11
+offset_bottom = 981.054
+scale = Vector2(0.5, 0.5)
+panel_texture = ExtResource("5_r4qqn")
+
+[node name="EventFrame" parent="RightPanel" index="0"]
+texture = ExtResource("5_r4qqn")
+
+[editable path="LeftPanel"]
+[editable path="MiddlePanel"]
+[editable path="RightPanel"]

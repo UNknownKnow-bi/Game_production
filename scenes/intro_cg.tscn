@@ -29,17 +29,14 @@ vertical_alignment = 1
 autowrap_mode = 2
 
 [node name="SkipButton" type="Button" parent="."]
-anchors_preset = 3
+anchors_preset = 1
 anchor_left = 1.0
-anchor_top = 1.0
 anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -109.0
-offset_top = -614.0
-offset_right = -29.0
-offset_bottom = -583.0
+offset_left = -150.0
+offset_top = 30.0
+offset_right = -30.0
+offset_bottom = 80.0
 grow_horizontal = 0
-grow_vertical = 0
 text = "跳过"
 
 [node name="ClickSound" type="AudioStreamPlayer" parent="."]

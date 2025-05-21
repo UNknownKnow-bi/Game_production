@@ -1,0 +1,47 @@
+[gd_scene load_steps=3 format=3 uid="uid://dh33kufeuxw1m"]
+
+[ext_resource type="Script" uid="uid://ljujmrtuxw7q" path="res://scripts/workday_new/base_event_card.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://s2lat25m3p4f" path="res://assets/workday_new/ui/events/new.png" id="2_ejibc"]
+
+[node name="BaseEventCard" type="PanelContainer"]
+custom_minimum_size = Vector2(350, 110)
+offset_right = 350.0
+offset_bottom = 110.0
+script = ExtResource("1_script")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="RightSection" type="VBoxContainer" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TopInfo" type="HBoxContainer" parent="HBoxContainer/RightSection"]
+layout_mode = 2
+
+[node name="EventTitle" type="Label" parent="HBoxContainer/RightSection/TopInfo"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+text = "事件标题"
+
+[node name="BottomInfo" type="Control" parent="HBoxContainer/RightSection"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="StatusIcon" type="TextureRect" parent="HBoxContainer/RightSection/BottomInfo"]
+custom_minimum_size = Vector2(60, 28)
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -60.0
+offset_top = -28.0
+grow_horizontal = 0
+grow_vertical = 0
+texture = ExtResource("2_ejibc")
+expand_mode = 1
+stretch_mode = 5

@@ -1,0 +1,109 @@
+[gd_scene load_steps=11 format=3 uid="uid://ckd4mgqatkxnd"]
+
+[ext_resource type="Script" uid="uid://deijiry5htitf" path="res://scripts/workday_new/workday_main_new.gd" id="1_vr1x0"]
+[ext_resource type="Texture2D" uid="uid://pywkdfx8n3kj" path="res://assets/workday_main_scene/ui/background.png" id="2_qrrlw"]
+[ext_resource type="Texture2D" uid="uid://d1iw48b42fv22" path="res://assets/workday_main_scene/ui/card_side_bar_char.png" id="3_2jyfy"]
+[ext_resource type="Texture2D" uid="uid://cjxh03jhqdync" path="res://assets/workday_main_scene/ui/card_side_bar_others.png" id="4_7v1hk"]
+[ext_resource type="Texture2D" uid="uid://kwb5siqgq1tm" path="res://assets/workday_main_scene/ui/rabbit_icon.png" id="5_70wdf"]
+[ext_resource type="Texture2D" uid="uid://b1iboc0t6qecj" path="res://assets/workday_main_scene/ui/bear_icon.png" id="6_yjvhx"]
+[ext_resource type="Texture2D" uid="uid://bew3b67ps7kcn" path="res://assets/workday_main_scene/ui/cup_icon.png" id="7_nwvl2"]
+[ext_resource type="Texture2D" uid="uid://eb6keaga1wls" path="res://assets/workday_main_scene/ui/PC.png" id="8_thnrw"]
+[ext_resource type="Script" uid="uid://bx4qwl6eaw7vx" path="res://scripts/workday_new/ui_controller_new.gd" id="9_8t40e"]
+[ext_resource type="PackedScene" uid="uid://dttjc7sij5lpw" path="res://scenes/workday_new/event_system_new.tscn" id="10_4u5xd"]
+
+[node name="WorkdayMain" type="Node2D"]
+script = ExtResource("1_vr1x0")
+
+[node name="Background" type="Node2D" parent="."]
+
+[node name="MainBackground" type="Sprite2D" parent="Background"]
+position = Vector2(959.625, 518)
+scale = Vector2(1.18294, 1.09722)
+texture = ExtResource("2_qrrlw")
+
+[node name="CardSideLayer" type="Node2D" parent="."]
+z_index = 1
+
+[node name="CardSideChar" type="TextureButton" parent="CardSideLayer"]
+offset_left = 182.0
+offset_top = 106.0
+offset_right = 863.0
+offset_bottom = 1168.0
+rotation = -0.202458
+scale = Vector2(0.5, 0.5)
+texture_normal = ExtResource("3_2jyfy")
+stretch_mode = 0
+
+[node name="CardSideOthers" type="TextureButton" parent="CardSideLayer"]
+offset_left = 178.0
+offset_top = 256.0
+offset_right = 844.0
+offset_bottom = 1323.0
+rotation = -0.338594
+scale = Vector2(0.5, 0.5)
+texture_normal = ExtResource("4_7v1hk")
+stretch_mode = 0
+
+[node name="ContentLayer" type="Node2D" parent="."]
+z_index = 2
+
+[node name="PC" type="Sprite2D" parent="ContentLayer"]
+position = Vector2(1148.5, 523)
+scale = Vector2(1.20052, 1.03704)
+texture = ExtResource("8_thnrw")
+
+[node name="EventSystem" parent="ContentLayer" instance=ExtResource("10_4u5xd")]
+z_index = 3
+offset_left = 346.0
+offset_top = -48.0
+offset_right = 346.0
+offset_bottom = -48.0
+scale = Vector2(0.995358, 1.00488)
+left_panel_size = Vector2(426, 980.004)
+
+[node name="ScrollContainer" parent="ContentLayer/EventSystem/LeftPanel" index="1"]
+offset_left = -4.0
+offset_top = 104.659
+offset_right = 2.00012
+offset_bottom = -18.3455
+
+[node name="MiddlePanel" parent="ContentLayer/EventSystem" index="1"]
+offset_top = 150.06
+
+[node name="UILayer" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="RabbitIcon" type="TextureButton" parent="UILayer"]
+offset_left = 162.0
+offset_top = 751.0
+offset_right = 617.0
+offset_bottom = 1529.0
+scale = Vector2(0.4, 0.4)
+texture_normal = ExtResource("5_70wdf")
+stretch_mode = 0
+
+[node name="BeerIcon" type="TextureButton" parent="UILayer"]
+offset_left = 1717.0
+offset_top = 729.0
+offset_right = 2277.0
+offset_bottom = 1389.0
+scale = Vector2(0.4, 0.4)
+texture_normal = ExtResource("6_yjvhx")
+stretch_mode = 0
+
+[node name="CupIcon" type="TextureButton" parent="UILayer"]
+offset_left = 419.0
+offset_top = 784.0
+offset_right = 950.0
+offset_bottom = 1544.0
+scale = Vector2(0.4, 0.4)
+texture_normal = ExtResource("7_nwvl2")
+stretch_mode = 0
+
+[node name="UIController" type="Node" parent="UILayer"]
+script = ExtResource("9_8t40e")
+
+[editable path="ContentLayer/EventSystem"]
+[editable path="ContentLayer/EventSystem/LeftPanel"]
+[editable path="ContentLayer/EventSystem/MiddlePanel"]
+[editable path="ContentLayer/EventSystem/RightPanel"]

@@ -45,14 +45,19 @@ func _ready():
 	# 应用字体到跳过按钮
 	if has_node("SkipButton"):
 		var skip_button = $SkipButton
-		var font = FontManager.get_font()
-		if font:
-			skip_button.add_theme_font_override("font", font)
-			skip_button.add_theme_font_size_override("font_size", FontManager.get_font_size("button"))
+		# 直接设置合适的字体大小
+		skip_button.add_theme_font_size_override("font_size", 33) # 固定值，原来是FontManager.get_font_size("button") * 1.5
+		# 添加padding使按钮看起来更大
+		skip_button.add_theme_constant_override("h_separation", 10)
+		skip_button.add_theme_constant_override("outline_size", 2)
+		# 添加一些颜色让按钮更突出
+		skip_button.add_theme_color_override("font_color", Color(1, 1, 1, 1))  # 白色文字
+		skip_button.add_theme_color_override("font_hover_color", Color(1, 0.9, 0.3, 1))  # 悬停时为黄色
 		skip_button.pressed.connect(on_skip_button_pressed)
-	
-	# 告知FontManager对整个场景应用字体
-	FontManager.apply_to_scene(self)
+		
+		# 添加悬停效果
+		skip_button.mouse_entered.connect(func(): skip_button.modulate = Color(1.2, 1.2, 1.2, 1.0))
+		skip_button.mouse_exited.connect(func(): skip_button.modulate = Color(1.0, 1.0, 1.0, 1.0))
 	
 	# 开始显示文本
 	display_current_text()
@@ -97,23 +102,27 @@ func replace_label_with_richtext():
 	rich_label.scroll_active = false
 	rich_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	
-	# 应用字体 - 确保使用FontManager中的统一字体
-	var font = FontManager.get_font()
+	# 使用固定字体大小设置
+	var font_path = "res://assets/font/LEEEAFHEI-REGULAR.TTF"
+	var font = load(font_path)
 	if font:
 		rich_label.add_theme_font_override("normal_font", font)
 		rich_label.add_theme_font_override("bold_font", font)
 		rich_label.add_theme_font_override("italics_font", font)
 		rich_label.add_theme_font_override("bold_italics_font", font)
-		rich_label.add_theme_font_size_override("normal_font_size", FontManager.get_font_size("dialog"))
-		rich_label.add_theme_font_size_override("bold_font_size", FontManager.get_font_size("dialog"))
-		rich_label.add_theme_font_size_override("italics_font_size", FontManager.get_font_size("dialog"))
-		rich_label.add_theme_font_size_override("bold_italics_font_size", FontManager.get_font_size("dialog"))
+		
+		# 设置固定字体大小
+		var dialog_font_size = 25 # 原来是从FontManager获取
+		rich_label.add_theme_font_size_override("normal_font_size", dialog_font_size)
+		rich_label.add_theme_font_size_override("bold_font_size", dialog_font_size)
+		rich_label.add_theme_font_size_override("italics_font_size", dialog_font_size)
+		rich_label.add_theme_font_size_override("bold_italics_font_size", dialog_font_size)
 		
 		# 设置行间距
-		var line_spacing = FontManager.get_font_size("dialog") * 0.3
+		var line_spacing = int(dialog_font_size * 0.3)
 		rich_label.add_theme_constant_override("line_separation", line_spacing)
 	else:
-		# 如果无法获取FontManager字体，则使用默认设置
+		# 如果无法加载字体，则使用默认设置
 		rich_label.add_theme_font_size_override("normal_font_size", 28)
 		rich_label.add_theme_constant_override("line_separation", 10)  # 增加行间距
 	

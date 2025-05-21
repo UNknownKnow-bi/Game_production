@@ -67,11 +67,6 @@ func _ready():
 	announcement_panel.visible = false
 	settings_panel.visible = false
 	
-	# 使用FontManager应用字体到主菜单
-	if FontManager:
-		FontManager.apply_to_scene(self)
-		print("FontManager已应用到主菜单场景")
-	
 	# 启动延时计时器，5.5秒后显示按钮
 	show_button_delayed()
 
@@ -154,12 +149,7 @@ func _on_settings_confirm_pressed():
 
 # 字体设置按钮点击事件
 func _on_font_settings_button_pressed():
-	# 调用FontManager打开字体设置UI
-	if FontManager:
-		FontManager.open_settings()
-		print("打开字体设置界面")
-	else:
-		print("FontManager未加载，无法打开字体设置")
+	print("字体设置功能已禁用")
 
 # 设置取消按钮点击事件
 func _on_settings_cancel_pressed():

@@ -36,6 +36,9 @@ Thumbs.db
 *.pck
 *.zip
 
+# 嵌入的git仓库
+/godot-mcp/
+
 # 可能的大型媒体文件 (如有需要可以取消注释)
 # *.mp4
 # *.wav

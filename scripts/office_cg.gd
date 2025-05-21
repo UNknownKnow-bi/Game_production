@@ -18,8 +18,8 @@ const MIN_DIALOG_BOX_HEIGHT = 150        # 最小对话框高度
 const MAX_DIALOG_BOX_HEIGHT = 300        # 最大对话框高度
 
 # 字体大小配置 - 使用固定大小
-const FONT_SIZE_SPEAKER = 28      # 说话人名称
-const FONT_SIZE_DIALOG = 30       # 对话文本
+const FONT_SIZE_SPEAKER = 33      # 说话人名称
+const FONT_SIZE_DIALOG = 40       # 对话文本
 const FONT_SIZE_TITLE = 28        # 标题
 const FONT_SIZE_BUTTON = 22       # 按钮文本
 const FONT_SIZE_RESULT = 22       # 结果文本
