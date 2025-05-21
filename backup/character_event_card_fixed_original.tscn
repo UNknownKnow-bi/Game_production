@@ -28,13 +28,6 @@ background_color = Color(0.95, 0.95, 0.95, 1)
 [node name="CardContent" type="Control" parent="."]
 layout_mode = 2
 
-[node name="EventCharacterPortrait" type="TextureRect" parent="CardContent"]
-layout_mode = 0
-offset_left = 185.0
-offset_top = 1.0
-offset_right = 608.0
-offset_bottom = 278.0
-
 [node name="EventTitle" type="Label" parent="CardContent"]
 layout_mode = 0
 offset_left = 4.0
@@ -52,9 +45,9 @@ max_lines_visible = 1
 [node name="EventPerson" type="Label" parent="CardContent"]
 layout_mode = 0
 offset_left = 6.0
-offset_top = 92.0
+offset_top = 87.0
 offset_right = 246.0
-offset_bottom = 142.0
+offset_bottom = 137.0
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("2_ppt5y")
 theme_override_font_sizes/font_size = 50
