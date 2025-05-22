@@ -1,0 +1,116 @@
+[gd_scene load_steps=4 format=3 uid="uid://buidpoucposth"]
+
+[ext_resource type="Script" uid="uid://futro6ds2uwq" path="res://scripts/character_detail_popup.gd" id="1_script"]
+[ext_resource type="FontFile" uid="uid://cdja3eosvd0mn" path="res://assets/font/LEEEAFHEI-REGULAR.TTF" id="2_font"]
+[ext_resource type="PackedScene" uid="uid://ba6gl5ula132g" path="res://scenes/character_card.tscn" id="3_card"]
+
+[node name="CharacterDetailPopup" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.588235)
+
+[node name="DetailPanel" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 479.0
+offset_top = 220.0
+offset_right = 1479.0
+offset_bottom = 820.0
+
+[node name="LeftSection" type="Control" parent="DetailPanel"]
+anchors_preset = 0
+anchor_bottom = 1.0
+offset_right = 300.0
+
+[node name="CharacterCard" parent="DetailPanel/LeftSection" instance=ExtResource("3_card")]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -210.0
+offset_right = 150.0
+offset_bottom = 210.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="RightSection" type="Control" parent="DetailPanel"]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -680.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 0
+grow_vertical = 2
+
+[node name="AttributesLabel" type="Label" parent="DetailPanel/RightSection"]
+layout_mode = 0
+offset_top = 87.0
+offset_right = 660.0
+offset_bottom = 127.0
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 28
+text = "属性"
+horizontal_alignment = 1
+
+[node name="AttributesContainer" type="VBoxContainer" parent="DetailPanel/RightSection"]
+layout_mode = 0
+offset_top = 156.0
+offset_right = 660.0
+offset_bottom = 276.0
+scale = Vector2(0.884383, 0.960001)
+size_flags_vertical = 3
+size_flags_stretch_ratio = 0.4
+theme_override_constants/separation = 10
+
+[node name="DescriptionPanel" type="VBoxContainer" parent="DetailPanel/RightSection"]
+layout_mode = 0
+offset_left = 9.0
+offset_top = 396.0
+offset_right = 669.0
+offset_bottom = 516.0
+size_flags_vertical = 3
+size_flags_stretch_ratio = 0.3
+
+[node name="DescriptionText" type="RichTextLabel" parent="DetailPanel/RightSection/DescriptionPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/normal_font_size = 27
+bbcode_enabled = true
+text = "角色描述内容..."
+
+[node name="TagsContainer" type="VBoxContainer" parent="DetailPanel/RightSection"]
+layout_mode = 0
+offset_left = -282.0
+offset_top = 490.0
+offset_right = 378.0
+offset_bottom = 610.0
+size_flags_vertical = 3
+size_flags_stretch_ratio = 0.1
+
+[node name="CloseButton" type="Button" parent="DetailPanel"]
+layout_mode = 0
+offset_left = 960.0
+offset_top = 10.0
+offset_right = 990.0
+offset_bottom = 40.0
+theme_override_font_sizes/font_size = 20
+text = "X"

@@ -77,6 +77,10 @@ func _ready():
 	
 	# 设置卡片容器边距
 	set_card_container_margin(card_container_margin)
+	
+	# 隐藏滚动条但保留滚动功能
+	if scroll_container:
+		scroll_container.vertical_scroll_mode = 3
 
 # 处理尺寸变化事件
 func _on_panel_resized():
@@ -122,6 +126,16 @@ func _calculate_container_height_for_three_cards():
 	
 	return card_height * 3 + total_separation + container_padding
 
+# 新增函数: 计算合适的卡片容器高度以显示4张卡片
+func _calculate_container_height_for_four_cards():
+	# 单个卡片高度 + 卡片间距 × 3 (三个间隔) + 上下边距
+	var card_height = 110                # 与base_event_card.gd中的card_min_height一致
+	var separation = 10                  # 卡片间距
+	var total_separation = separation * 3  # 3个间隔（4个卡片间有3个间隔）
+	var container_padding = card_container_margin * 2  # 上下边距
+	
+	return card_height * 4 + total_separation + container_padding
+
 # 修改set_card_container_margin函数
 func set_card_container_margin(value: int):
 	card_container_margin = value
@@ -157,8 +171,8 @@ func set_card_container_margin(value: int):
 			# 使用保存的编辑器位置，但应用当前边距
 			card_container.position = _editor_container_position
 			
-			# 计算容器高度以正好容纳3张卡片
-			var container_height = _calculate_container_height_for_three_cards()
+			# 计算容器高度以正好容纳4张卡片
+			var container_height = _calculate_container_height_for_four_cards()
 			card_container.size.y = container_height
 			card_container.size.x = _editor_container_size.x
 			
@@ -168,7 +182,7 @@ func set_card_container_margin(value: int):
 		else:
 			# 如果没有保存过编辑器设置，使用默认边距
 			card_container.position = Vector2(offset, offset)
-			card_container.size = Vector2(size.x - offset * 2, _calculate_container_height_for_three_cards())
+			card_container.size = Vector2(size.x - offset * 2, _calculate_container_height_for_four_cards())
 			
 			# 设置卡片间距
 			if card_container is VBoxContainer:

@@ -1,0 +1,12 @@
+card_id	card_name	card_pictures	card_level	company_name	job_title	card_type	attributes_orgin	character_description	is_unlocked_by_default	tags
+001	主角	maincharacter_trans.png	P1	WonderTech	高级工程师	角色	{"social":3,"resistance":3,"innovation":3,"execution":3,"physical":3}	你，这职场中的主角，将在大厂中探索。	1	["拼搏女性", "梦想追逐者"]
+002	高云峰	bosstrans.png	P1	WonderTech	首席产品官	角色	{"social":6,"resistance":4,"innovation":4,"execution":5,"physical":3}	你的直属上司，产品部门的一把手，掌握着你职业发展的关键资源。	0	["精明老板", "职场高手"]
+003	天笑	boyfriend_trans.png	P3	WonderTech	商务经理	角色	{"social":4,"resistance":2,"innovation":3,"execution":2,"physical":3}	你的男友，在公司市场部工作，是你工作之外的情感依靠。	1	["富二代", "温柔蜜语"]
+004	姜小雨	xiaoyu_trans.png	P4	WonderTech	研发外包	角色	{"social":2,"resistance":3,"innovation":4,"execution":4,"physical":3}	隶属于你的外包研发，性格内向但实力不俗。	1	["未雕琢的璞玉"]
+005	沈拉拉	bestie_trans.png	P2	WonderTech	产品执行助理	角色	{"social":4,"resistance":3,"innovation":3,"execution":3,"physical":3}	老板的秘书，你在公司里最亲近的饭搭子。	0	["职场甜妹", "纯诚秘书"]
+006	盖盖	gay_trans.png	P4	WonderTech	初级工程师	角色	{"social":4,"resistance":3,"innovation":4,"execution":3,"physical":3}	你带教的应届生。	0	["热血应届生"]
+007	阿成	acheng_trans.png	P4	WonderTech	研发外包	角色	{"social":2,"resistance":4,"innovation":2,"execution":3,"physical":3}	隶属于你的外包研发，踏实肯干但易受外界影响。	1	["踏实"]
+008	雯婕	wenjie_trans.png	P1	WonderTech	首席技术官	角色	{"social":4,"resistance":4,"innovation":3,"execution":4,"physical":3}	与你同龄的公司"老人"，老板的嫡系。	0	["野心家"]
+009	CEO	ceo_trans.png	P1	WonderTech	CEO	角色	{"social":5,"resistance":5,"innovation":5,"execution":5,"physical":4}	公司创始人，高高在上的决策者，很少与普通员工有直接接触。	0	["知名企业家"]
+010	刘小琴	liuxiaoqin.png	P2	WonderTech	市场总监	角色	{"social":4,"resistance":3,"innovation":2,"execution":3,"physical":3}	你男友的上司，市场部总监，与你的老板多处竞争。	0	["职场霸凌者"]
+011	耀祖	yaozu.png	P4	WonderTech	家中宝	角色	{"social":3,"resistance":2,"innovation":3,"execution":2,"physical":3}	你的弟弟，你的亲情纽带。	0	["前途未卜"] 

@@ -199,7 +199,7 @@ func _on_events_updated():
 	# 为空的character面板添加样本事件卡片进行UI测试
 	if character_events.is_empty() and left_panel:
 		print("character面板无可用事件，添加样本事件卡片进行UI测试...")
-		left_panel.create_sample_event_cards(3, "character")  # 创建3个人物事件卡片
+		left_panel.create_sample_event_cards(4, "character")  # 创建4个人物事件卡片
 	
 	print("事件面板更新完成")
 
