@@ -41,6 +41,7 @@ panel_texture = ExtResource("3_08iqt")
 offset_left = -277.002
 offset_right = 277.998
 offset_bottom = -0.00402832
+mouse_filter = 2
 texture = ExtResource("3_08iqt")
 
 [node name="MiddlePanel" parent="." instance=ExtResource("2_bxoue")]
@@ -54,6 +55,7 @@ scale = Vector2(0.3, 0.3)
 panel_texture = ExtResource("4_4g2lq")
 
 [node name="EventFrame" parent="MiddlePanel" index="0"]
+mouse_filter = 2
 texture = ExtResource("4_4g2lq")
 
 [node name="RightPanel" parent="." instance=ExtResource("2_bxoue")]
@@ -67,6 +69,7 @@ scale = Vector2(0.5, 0.5)
 panel_texture = ExtResource("5_r4qqn")
 
 [node name="EventFrame" parent="RightPanel" index="0"]
+mouse_filter = 2
 texture = ExtResource("5_r4qqn")
 
 [editable path="LeftPanel"]

@@ -134,4 +134,26 @@ func get_cards_by_type(card_type: String) -> Array:
 		var card = cards[card_id]
 		if card.card_type == card_type:
 			result.append(card)
-	return result 
+	return result
+
+# 根据角色名称获取角色卡数据
+func get_character_data(character_name: String) -> CharacterCardData:
+	if character_name.is_empty():
+		return null
+	
+	for card_id in cards:
+		var card_data = cards[card_id]
+		if card_data.card_name == character_name:
+			return card_data
+	return null
+
+# 检查角色是否存在
+func has_character(character_name: String) -> bool:
+	return get_character_data(character_name) != null
+
+# 获取所有角色名称
+func get_all_character_names() -> Array:
+	var names = []
+	for card_id in cards:
+		names.append(cards[card_id].card_name)
+	return names 

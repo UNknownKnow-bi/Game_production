@@ -18,6 +18,9 @@ class_name BaseEventCard
 var new_status_texture = preload("res://assets/workday_new/ui/events/new.png")
 var dealing_status_texture = preload("res://assets/workday_new/ui/events/dealing.png")
 
+# 游戏事件引用
+var game_event: GameEvent = null
+
 # 节点引用
 @onready var _base_title_label = $HBoxContainer/RightSection/TopInfo/EventTitle
 @onready var _base_status_icon = $HBoxContainer/RightSection/BottomInfo/StatusIcon
@@ -118,3 +121,10 @@ func _on_gui_input(event):
 # 获取卡片类型
 func get_card_type() -> String:
 	return "base" 
+
+# 游戏事件相关方法
+func set_game_event(event: GameEvent):
+	game_event = event
+
+func get_game_event() -> GameEvent:
+	return game_event 

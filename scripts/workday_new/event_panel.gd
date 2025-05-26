@@ -15,13 +15,15 @@ var texture_fit_mode: int = 0 : set = set_texture_fit_mode
 @onready var event_frame: TextureRect = $EventFrame
 @onready var scroll_container: ScrollContainer = $ScrollContainer
 @onready var card_container: VBoxContainer = $ScrollContainer/CardContainer
+@onready var empty_state_label: Label = $EmptyStateLabel
 
 # 信号
 signal panel_clicked
 signal size_changed(new_size)
+signal card_event_clicked(game_event: GameEvent)
 
 # 卡片管理
-var event_cards = [] # 当前面板中的事件卡片
+var event_cards: Array[CharacterEventCardFixed] = []
 
 # 编辑器设置跟踪
 var _editor_positions_initialized = false
@@ -38,9 +40,19 @@ func _init():
 	resized.connect(_on_panel_resized)
 
 func _ready():
-	# 连接信号
-	if event_frame and not event_frame.gui_input.is_connected(_on_event_frame_input):
-		event_frame.gui_input.connect(_on_event_frame_input)
+	# 移除EventFrame的gui_input连接，让事件自然传播到卡片
+	# if event_frame and not event_frame.gui_input.is_connected(_on_event_frame_input):
+	#	event_frame.gui_input.connect(_on_event_frame_input)
+	
+	# 设置EventFrame忽略鼠标事件，让事件传播到子节点
+	if event_frame:
+		event_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
+	# 设置容器传递事件到子节点
+	if scroll_container:
+		scroll_container.mouse_filter = Control.MOUSE_FILTER_PASS
+	if card_container:
+		card_container.mouse_filter = Control.MOUSE_FILTER_PASS
 	
 	# 应用初始属性
 	_apply_properties()
@@ -195,10 +207,24 @@ func _apply_properties():
 	if event_frame:
 		event_frame.texture = panel_texture
 
-# 处理事件框架的输入事件
-func _on_event_frame_input(event):
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		panel_clicked.emit()
+# 处理事件框架的输入事件 - 已禁用，让事件自然传播到卡片
+# func _on_event_frame_input(event):
+#	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+#		# 检查点击位置是否在任何卡片上
+#		var click_pos = event.position
+#		var clicked_on_card = false
+#		
+#		for card in event_cards:
+#			if card.get_rect().has_point(click_pos):
+#				clicked_on_card = true
+#				break
+#		
+#		# 只在点击空白区域时发射信号（可选功能，当前禁用）
+#		if not clicked_on_card:
+#			# panel_clicked.emit() # 禁用面板点击信号
+#			print("点击了面板空白区域，不触发事件")
+#		else:
+#			print("点击了事件卡片区域，由卡片处理")
 
 # === 事件卡片管理基础设施 ===
 
@@ -229,8 +255,14 @@ func add_event_card(event_data, card_type: String = "character"):
 		card_container.add_child(card)
 	
 	# 连接卡片点击信号
-	if card.has_signal("card_clicked") and not card.card_clicked.is_connected(_on_card_clicked):
-		card.card_clicked.connect(_on_card_clicked.bind(card))
+	if card.has_signal("card_clicked"):
+		var bound_callable = _on_card_clicked.bind(card)
+		if not card.card_clicked.is_connected(bound_callable):
+			print("EventPanel: 连接卡片信号 - ", card.event_title)
+			card.card_clicked.connect(bound_callable)
+			print("EventPanel: 信号连接成功")
+		else:
+			print("EventPanel: 信号已连接，跳过 - ", card.event_title)
 	
 	# 将卡片添加到事件卡片列表
 	event_cards.append(card)
@@ -244,80 +276,48 @@ func clear_event_cards():
 	
 	# 清除容器中的子节点
 	if card_container:
-		for child in card_container.get_children():
-			child.queue_free()
+		var children = card_container.get_children()
+		for child in children:
+			if is_instance_valid(child):
+				child.queue_free()
+		
+		# 等待一帧确保节点被清理
+		await get_tree().process_frame
 	
 	print("已清除所有事件卡片")
 
 # 显示空状态（无事件时）
 func show_empty_state(message: String = ""):
 	# 清除所有卡片
-	clear_event_cards()
+	await clear_event_cards()
 	
-	# 当前无需显示任何特定的空状态UI
-	# 未来可能会添加一个空状态的视觉指示
+	# 显示空状态信息
 	print("事件面板显示空状态: ", message if message else "无事件")
-	
-# 修改create_sample_event_cards函数
-func create_sample_event_cards(count: int = 3, card_type: String = "character"):
-	# 清除现有卡片
-	clear_event_cards()
-	
-	print("开始创建 ", count, " 个样本", card_type, "卡片...")
-	
-	# 创建几个样本事件卡片
-	var sample_events = [
-		{
-			"title": "一个人的会议室",
-			"character": "天笑",
-			"status": "dealing",  # 处理中
-			"texture_path": "res://assets/character/bosstrans.png",
-			"region_enabled": true,
-			"region_y_position": 0.0,  # 顶部
-			"region_height": 0.45
-		},
-		{
-			"title": "客户投诉处理",
-			"character": "员工",
-			"status": "new",  # 新消息
-			"texture_path": "res://assets/character/maincharacter_trans.png",
-			"region_enabled": true,
-			"region_y_position": 0.0,  # 顶部
-			"region_height": 0.45
-		},
-		{
-			"title": "部门预算审批",
-			"character": "老板",
-			"status": "dealing",  # 处理中
-			"texture_path": "res://assets/character/bosstrans.png",
-			"region_enabled": true,
-			"region_y_position": 0.0,  # 顶部
-			"region_height": 0.45
-		}
-	]
-	
-	# 确保有足够的样本数据
-	while sample_events.size() < count:
-		# 添加重复的样本事件
-		var base_index = sample_events.size() % 3
-		var new_sample = sample_events[base_index].duplicate()
-		new_sample.title = new_sample.title + " " + str(sample_events.size() + 1)
-		sample_events.append(new_sample)
-	
-	# 根据请求的数量创建卡片
-	for i in range(count):
-		var event_data = sample_events[i]
-		
-		print("创建卡片 #", i+1, ":", event_data.title)
-		
-		# 使用add_event_card添加卡片
-		add_event_card(event_data, card_type)
-	
-	print("已创建 ", event_cards.size(), " 个样本事件卡片")
 
 # 卡片点击处理
 func _on_card_clicked(card):
-	print("卡片被点击: ", card.event_title) 
+	print("EventPanel: 接收到卡片点击信号")
+	print("EventPanel: 卡片信息 - 标题: ", card.event_title, ", 类型: ", card.get_class())
+	print("EventPanel: 卡片被点击 - ", card.event_title)
+	
+	# 获取卡片关联的游戏事件并发射信号
+	var game_event = card.get_game_event()
+	if game_event:
+		print("EventPanel: 获取到game_event - ", game_event.event_name)
+		print("EventPanel: 发射card_event_clicked信号，事件: ", game_event.event_name)
+		card_event_clicked.emit(game_event)
+		print("EventPanel: card_event_clicked信号已发射")
+	else:
+		print("EventPanel: 警告 - 卡片没有关联的游戏事件，卡片类型: ", card.get_class())
+
+# 添加卡片状态验证方法
+func validate_cards_state():
+	print("=== 验证卡片状态 ===")
+	for i in range(event_cards.size()):
+		var card = event_cards[i]
+		var game_event = card.get_game_event()
+		print("卡片 #", i+1, " - 标题: ", card.event_title, " | game_event: ", game_event.event_name if game_event else "null")
+	print("=== 验证完成 ===")
 
 # 静态方法：创建完整配置的测试事件面板实例
 static func create_test_panel(panel_size: Vector2 = Vector2(320, 500)) -> EventPanel:

@@ -174,6 +174,7 @@ func _set_panel_transforms(panel: EventPanel, center_pos: Vector2, size: Vector2
 func _on_events_updated():
 	var event_manager = get_node_or_null("/root/EventManager")
 	if not event_manager:
+		print("错误: 未找到EventManager")
 		return
 	
 	print("事件已更新，正在刷新面板显示...")
@@ -183,9 +184,15 @@ func _on_events_updated():
 	var random_events = event_manager.get_active_events("random")
 	var daily_events = event_manager.get_active_events("daily")
 	
-	print("角色事件数量: ", character_events.size())
-	print("随机事件数量: ", random_events.size())
-	print("日常事件数量: ", daily_events.size())
+	print("活跃事件数量统计:")
+	print("  角色事件数量: ", character_events.size())
+	print("  随机事件数量: ", random_events.size())
+	print("  日常事件数量: ", daily_events.size())
+	
+	# 如果调试模式开启，显示所有事件数量
+	if event_manager.debug_mode:
+		var debug_info = event_manager.get_debug_info()
+		print("EventManager调试信息: ", debug_info)
 	
 	# 更新人物事件显示
 	update_event_panel("character", left_panel)
@@ -195,11 +202,6 @@ func _on_events_updated():
 	
 	# 更新日常事件显示
 	update_event_panel("daily", right_panel)
-	
-	# 为空的character面板添加样本事件卡片进行UI测试
-	if character_events.is_empty() and left_panel:
-		print("character面板无可用事件，添加样本事件卡片进行UI测试...")
-		left_panel.create_sample_event_cards(4, "character")  # 创建4个人物事件卡片
 	
 	print("事件面板更新完成")
 
@@ -221,32 +223,32 @@ func update_event_panel(category: String, panel: EventPanel):
 	
 	# 为每个活跃事件创建卡片
 	for event in active_events:
-		# 将事件对象转换为字典
-		var event_data = {
-			"title": event.event_name,
-			"character": event.event_group_name,
-			"status": "new",  # 默认为新消息，可以根据实际状态调整
-			"character_texture_path": event.icon_path,
-			# 添加默认的区域裁剪设置
-			"region_enabled": true,  # 默认启用区域裁剪
-			"region_y_position": 0.0,  # 默认使用顶部区域
-			"region_height": 0.45      # 默认使用45%高度
-		}
-		
-		# 如果事件中有自定义区域设置，则使用事件中的设置
-		if event.has("region_enabled"):
-			event_data.region_enabled = event.region_enabled
-			
-		if event.has("region_y_position"):
-			event_data.region_y_position = event.region_y_position
-			
-		if event.has("region_height"):
-			event_data.region_height = event.region_height
-		
-		# 根据类别创建合适类型的卡片
-		panel.add_event_card(event_data, category)
+		# 直接传递GameEvent对象，让EventCardFactory处理所有逻辑
+		panel.add_event_card(event, category)
 		
 	print("已为", category, "面板添加", active_events.size(), "个事件卡片")
+	
+	# 验证卡片创建结果
+	print("=== EventSystem验证卡片状态 ===")
+	var created_cards = panel.event_cards.size()
+	print("预期卡片数量: ", active_events.size(), " | 实际创建数量: ", created_cards)
+	
+	if created_cards != active_events.size():
+		print("⚠️ 警告: 卡片创建数量不匹配")
+	
+	# 验证每个卡片的game_event设置
+	var valid_cards = 0
+	for i in range(panel.event_cards.size()):
+		var card = panel.event_cards[i]
+		var game_event = card.get_game_event()
+		if game_event:
+			print("✓ 卡片 #", i+1, " - 事件: ", game_event.event_name, " | 状态: 正常")
+			valid_cards += 1
+		else:
+			print("✗ 卡片 #", i+1, " - 标题: ", card.event_title, " | 状态: game_event为null")
+	
+	print("有效卡片数量: ", valid_cards, "/", created_cards)
+	print("=== 验证完成 ===")
 
 # 获取类别显示名称
 func get_category_display_name(category: String) -> String:
@@ -313,6 +315,16 @@ func reload_events():
 	event_manager.update_available_events()
 	
 	print("事件数据重新加载完成")
+	
+	# 测试角色映射功能
+	print("=== 测试角色映射功能 ===")
+	CharacterMapping.debug_print_all_characters()
+	
+	# 测试几个已知角色
+	var test_characters = ["主角", "高云峰", "天笑"]
+	for char_name in test_characters:
+		var image_path = CharacterMapping.get_character_image_path(char_name)
+		print("测试角色映射: ", char_name, " -> ", image_path)
 
 # 属性设置器
 func set_left_panel_position(pos: Vector2):

@@ -8,6 +8,7 @@ class_name CharacterEventCardFixed
 @export var character_name: String = "相关人物" : set = set_character_name
 @export var event_status: String = "new" : set = set_event_status  # "new" 或 "dealing"
 @export var character_texture: Texture2D : set = set_character_texture
+@export var game_event: GameEvent
 
 # 图像裁剪属性
 @export_group("图像裁剪")
@@ -41,6 +42,25 @@ var dealing_status_texture = preload("res://assets/workday_new/ui/events/dealing
 signal card_clicked
 
 func _ready():
+	# 确保卡片能接收点击事件
+	mouse_filter = Control.MOUSE_FILTER_STOP  # 停止事件传播，由卡片处理
+	
+	# 设置CardContent容器忽略鼠标事件，让事件传播到父容器
+	if has_node("CardContent"):
+		get_node("CardContent").mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
+	# 设置所有子节点忽略鼠标事件，让事件传播到父容器
+	if title_label:
+		title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if name_label:
+		name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if status_icon:
+		status_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if character_image:
+		character_image.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if has_node("CardContent/EventCharacterPortrait"):
+		get_node("CardContent/EventCharacterPortrait").mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
 	# 检查是否需要创建EventCharacterPortrait节点
 	if not has_node("CardContent/EventCharacterPortrait"):
 		print("未找到EventCharacterPortrait节点，正在动态创建...")
@@ -51,6 +71,7 @@ func _ready():
 		image_node.set_anchors_preset(Control.PRESET_FULL_RECT) # 填充整个区域
 		image_node.position = Vector2(0, 0)
 		image_node.size = Vector2(420, 270)
+		image_node.mouse_filter = Control.MOUSE_FILTER_IGNORE  # 新创建的节点也设置为忽略鼠标事件
 		$CardContent.add_child(image_node)
 		$CardContent.move_child(image_node, 0) # 移到最底层
 		character_image = image_node
@@ -261,11 +282,29 @@ func _apply_style():
 
 # 点击事件处理
 func _on_gui_input(event):
-	if event is InputEventMouseButton and event.pressed:
-		if event.button_index == MOUSE_BUTTON_LEFT:
-			# 左键点击发出信号
+	print("CharacterEventCardFixed: 接收到输入事件 - 类型: ", event.get_class())
+	if event is InputEventMouseButton:
+		print("CharacterEventCardFixed: 鼠标按钮事件 - 按下: ", event.pressed, ", 按钮: ", event.button_index)
+		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			print("CharacterEventCardFixed: 卡片被点击 - ", event_title)
+			print("CharacterEventCardFixed: game_event状态 - ", game_event.event_name if game_event else "null")
+			print("CharacterEventCardFixed: 鼠标过滤设置 - ", mouse_filter)
+			print("CharacterEventCardFixed: 发射card_clicked信号...")
+			if game_event:
+				print("CharacterEventCardFixed: 发射card_clicked信号，事件: ", game_event.event_name)
+			else:
+				print("CharacterEventCardFixed: 错误 - 没有关联的game_event，无法处理点击")
 			card_clicked.emit()
+			print("CharacterEventCardFixed: card_clicked信号已发射")
 
 # 获取卡片类型
 func get_card_type() -> String:
 	return "character" 
+
+# 游戏事件管理方法
+func set_game_event(event: GameEvent) -> void:
+	game_event = event
+	print("CharacterEventCardFixed: 设置game_event - ", event.event_name if event else "null")
+
+func get_game_event() -> GameEvent:
+	return game_event 

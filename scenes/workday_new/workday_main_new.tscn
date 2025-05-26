@@ -61,6 +61,10 @@ offset_bottom = -48.0
 scale = Vector2(0.995358, 1.00488)
 left_panel_size = Vector2(426, 980.004)
 
+[node name="EventFrame" parent="ContentLayer/EventSystem/LeftPanel" index="0"]
+offset_right = 276.998
+mouse_filter = 2
+
 [node name="ScrollContainer" parent="ContentLayer/EventSystem/LeftPanel" index="1"]
 offset_left = -4.0
 offset_top = 104.659
@@ -69,6 +73,12 @@ offset_bottom = -18.3455
 
 [node name="MiddlePanel" parent="ContentLayer/EventSystem" index="1"]
 offset_top = 150.06
+
+[node name="EventFrame" parent="ContentLayer/EventSystem/MiddlePanel" index="0"]
+mouse_filter = 2
+
+[node name="EventFrame" parent="ContentLayer/EventSystem/RightPanel" index="0"]
+mouse_filter = 2
 
 [node name="UILayer" type="CanvasLayer" parent="."]
 layer = 10

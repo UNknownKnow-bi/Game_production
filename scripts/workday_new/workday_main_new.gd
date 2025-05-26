@@ -276,48 +276,68 @@ func reset_all_interactions():
 
 # 添加事件系统初始化函数
 func initialize_event_system():
-	if not event_system:
-		printerr("事件系统未找到")
-		return
+	print("=== 开始初始化事件系统 ===")
 	
-	# 检查EventManager是否存在
-	var event_manager = get_node_or_null("/root/EventManager")
-	if not event_manager:
-		printerr("EventManager not found in autoload nodes")
-		return
+	# 检查EventManager的初始化状态
+	print("EventManager初始化状态检查:")
+	print("  - EventManager实例: ", EventManager)
+	print("  - 当前事件总数: ", EventManager.get_total_events_count())
+	print("  - 是否已加载数据: ", EventManager.has_loaded_data())
 	
-	# 记录初始CardContainer位置(用于调试)
-	print("==== 初始化事件系统前的CardContainer位置 ====")
-	_log_card_container_positions()
+	# 运行独立数据加载测试
+	print("\n=== 运行数据加载诊断测试 ===")
+	var test_result = EventManager.test_data_loading()
+	print("测试结果摘要:")
+	for test_name in test_result:
+		var status = "✓ 通过" if test_result[test_name] else "✗ 失败"
+		print("  - ", test_name, ": ", status)
 	
-	# 加载事件数据
-	event_manager.load_events_from_tsv("res://data/events/sample_events.tsv")
+	# 如果EventManager已有数据，显示调试信息
+	if EventManager.has_loaded_data():
+		print("\nEventManager已有数据，显示详细信息:")
+		print("  - 总事件数: ", EventManager.get_total_events_count())
+		var categories = ["character", "random", "daily", "ending"]
+		for category in categories:
+			var events = EventManager.get_events_by_category(category)
+			print("  - ", category, "类事件: ", events.size(), "个")
+			if events.size() > 0:
+				print("    示例: ", events[0].event_name)
+	else:
+		print("\n⚠ 警告: EventManager没有数据，尝试手动加载...")
+		# 修复参数错误：需要提供文件路径和强制重载标志
+		EventManager.load_events_from_tsv(EventManager.EVENTS_DATA_PATH, true)
+		print("手动加载后事件总数: ", EventManager.get_total_events_count())
 	
-	# 更新可用事件
-	event_manager.update_available_events()
-	
-	# 连接事件系统的面板信号
-	_connect_event_panel_signals()
-	
-	# 加载保存的布局（如果有）
-	load_event_system_layout()
-	
-	# 确保事件系统更新函数被调用（以显示样本事件卡片）
-	print("触发事件系统更新，将显示样本事件卡片...")
-	if event_system.has_method("_on_events_updated"):
+	# 更新可用事件（不重复加载数据）
+	print("\n=== 更新事件系统 ===")
+	if event_system:
+		# 调用EventManager的update_available_events方法来更新事件数据
+		EventManager.update_available_events()
+		# 然后调用事件系统的事件更新回调来刷新显示
 		event_system._on_events_updated()
+		print("事件系统更新完成")
 		
-		# 延迟一帧，确保所有更新都应用完毕
-		await get_tree().process_frame
-		
-		# 手动检查卡片是否创建
-		_check_event_cards()
+		# 连接事件面板信号
+		_connect_event_panel_signals()
+		print("事件面板信号连接完成")
+	else:
+		print("⚠ 警告: event_system未初始化")
 	
-	# 记录最终CardContainer位置(用于调试)
-	print("==== 初始化事件系统后的CardContainer位置 ====")
-	_log_card_container_positions()
+	# 记录CardContainer的位置信息
+	if event_system:
+		var card_container = event_system.get_node_or_null("LeftPanel/ScrollContainer/CardContainer")
+		if card_container:
+			print("CardContainer初始位置: ", card_container.position)
+			print("CardContainer初始大小: ", card_container.size)
+			print("CardContainer子节点数: ", card_container.get_child_count())
+		else:
+			print("⚠ 警告: card_container未找到（路径：LeftPanel/ScrollContainer/CardContainer）")
 	
-	print("事件系统已初始化")
+	print("=== 事件系统初始化完成 ===")
+	
+	# 延迟验证卡片状态
+	await get_tree().process_frame
+	_verify_cards_after_initialization()
 
 # 连接事件面板信号
 func _connect_event_panel_signals():
@@ -326,70 +346,101 @@ func _connect_event_panel_signals():
 		var middle_panel = event_system.get_node_or_null("MiddlePanel")
 		var right_panel = event_system.get_node_or_null("RightPanel")
 		
-		if left_panel and not left_panel.panel_clicked.is_connected(_on_character_event_panel_clicked):
-			left_panel.panel_clicked.connect(_on_character_event_panel_clicked)
+		if left_panel:
+			# 禁用面板点击信号连接
+			# if not left_panel.panel_clicked.is_connected(_on_character_event_panel_clicked):
+			#	left_panel.panel_clicked.connect(_on_character_event_panel_clicked)
+			if not left_panel.card_event_clicked.is_connected(_on_card_event_clicked):
+				left_panel.card_event_clicked.connect(_on_card_event_clicked)
 		
-		if middle_panel and not middle_panel.panel_clicked.is_connected(_on_random_event_panel_clicked):
-			middle_panel.panel_clicked.connect(_on_random_event_panel_clicked)
+		if middle_panel:
+			# 禁用面板点击信号连接
+			# if not middle_panel.panel_clicked.is_connected(_on_random_event_panel_clicked):
+			#	middle_panel.panel_clicked.connect(_on_random_event_panel_clicked)
+			if not middle_panel.card_event_clicked.is_connected(_on_card_event_clicked):
+				middle_panel.card_event_clicked.connect(_on_card_event_clicked)
 		
-		if right_panel and not right_panel.panel_clicked.is_connected(_on_daily_event_panel_clicked):
-			right_panel.panel_clicked.connect(_on_daily_event_panel_clicked)
+		if right_panel:
+			# 禁用面板点击信号连接
+			# if not right_panel.panel_clicked.is_connected(_on_daily_event_panel_clicked):
+			#	right_panel.panel_clicked.connect(_on_daily_event_panel_clicked)
+			if not right_panel.card_event_clicked.is_connected(_on_card_event_clicked):
+				right_panel.card_event_clicked.connect(_on_card_event_clicked)
 
-# 处理角色事件面板点击
-func _on_character_event_panel_clicked():
-	_handle_event_panel_click("character")
+# 处理角色事件面板点击 - 已禁用
+# func _on_character_event_panel_clicked():
+#	_handle_event_panel_click("character")
 
-# 处理随机事件面板点击
-func _on_random_event_panel_clicked():
-	_handle_event_panel_click("random")
+# 处理随机事件面板点击 - 已禁用
+# func _on_random_event_panel_clicked():
+#	_handle_event_panel_click("random")
 
-# 处理日常事件面板点击
-func _on_daily_event_panel_clicked():
-	_handle_event_panel_click("daily")
+# 处理日常事件面板点击 - 已禁用
+# func _on_daily_event_panel_clicked():
+#	_handle_event_panel_click("daily")
 
-# 通用事件面板点击处理
-func _handle_event_panel_click(category: String):
-	var event_manager = get_node_or_null("/root/EventManager")
-	if not event_manager:
-		return
-	
-	var active_events = event_manager.get_active_events(category)
-	if active_events.is_empty():
-		print("没有可用的%s" % event_manager.get_category_display_name(category))
-		return
-	
-	# 获取第一个事件
-	var event = active_events[0]
-	print("处理%s: %s" % [category, event.event_name])
-	
-	# 显示事件弹窗
-	_show_event_popup(event)
+# 处理事件卡片点击
+func _on_card_event_clicked(game_event: GameEvent):
+	print("WorkdayMain: 接收到卡片点击事件 - ", game_event.event_name)
+	print("WorkdayMain: 显示事件弹窗")
+	_show_event_popup(game_event)
+
+# 通用事件面板点击处理 - 已禁用
+# func _handle_event_panel_click(category: String):
+#	var event_manager = get_node_or_null("/root/EventManager")
+#	if not event_manager:
+#		return
+#	
+#	var active_events = event_manager.get_active_events(category)
+#	if active_events.is_empty():
+#		var category_name = ""
+#		if event_system:
+#			category_name = event_system.get_category_display_name(category)
+#		else:
+#			category_name = category
+#		print("没有可用的%s" % category_name)
+#		return
+#	
+#	# 获取第一个事件
+#	var event = active_events[0]
+#	print("处理%s: %s" % [category, event.event_name])
+#	
+#	# 显示事件弹窗
+#	_show_event_popup(event)
 
 # 显示事件弹窗
 func _show_event_popup(event):
 	# 检查是否已存在事件弹窗
-	var popup = get_node_or_null("EventPopup")
+	var ui_layer = get_node_or_null("UILayer")
+	if not ui_layer:
+		print("警告：未找到UILayer，无法显示事件弹窗")
+		return
+	
+	var popup = ui_layer.get_node_or_null("EventPopup")
 	if not popup:
 		# 加载并实例化事件弹窗
 		var popup_scene = load("res://scenes/workday_new/components/event_popup.tscn")
 		if popup_scene:
 			popup = popup_scene.instantiate()
 			popup.name = "EventPopup"
-			add_child(popup)
+			# 将弹窗添加到UILayer中，确保在最顶层显示
+			ui_layer.add_child(popup)
 			popup.option_selected.connect(_on_event_option_selected)
+			print("事件弹窗已添加到UILayer")
 	
 	if popup:
 		# 准备事件数据
 		var event_data = {
 			"event_id": event.event_id,
 			"title": event.event_name,
-			"description": event.get_description(),
+			"description": event.get_pre_check_text(),  # 使用预检文本而不是原来的描述
 			"image_path": event.background_path if not event.background_path.is_empty() else "",
 			"has_reject_option": true  # 可以从事件数据中决定
 		}
 		
 		# 显示事件弹窗
 		popup.show_event(event_data)
+		print("事件弹窗已显示在UILayer顶层")
 
 # 处理事件选项选择
 func _on_event_option_selected(option_id: int, event_id: int):
@@ -448,17 +499,17 @@ func _log_card_container_positions():
 	var right_panel = event_system.get_node_or_null("RightPanel")
 	
 	if left_panel:
-		var container = left_panel.get_node_or_null("CardContainer")
+		var container = left_panel.get_node_or_null("ScrollContainer/CardContainer")
 		if container:
 			print("Left Panel CardContainer - 位置: ", container.position, " 大小: ", container.size, " 子节点数: ", container.get_child_count(), " 可见性: ", container.visible)
 	
 	if middle_panel:
-		var container = middle_panel.get_node_or_null("CardContainer")
+		var container = middle_panel.get_node_or_null("ScrollContainer/CardContainer")
 		if container:
 			print("Middle Panel CardContainer - 位置: ", container.position, " 大小: ", container.size, " 子节点数: ", container.get_child_count())
 	
 	if right_panel:
-		var container = right_panel.get_node_or_null("CardContainer")
+		var container = right_panel.get_node_or_null("ScrollContainer/CardContainer")
 		if container:
 			print("Right Panel CardContainer - 位置: ", container.position, " 大小: ", container.size, " 子节点数: ", container.get_child_count())
 
@@ -471,13 +522,14 @@ func _check_event_cards():
 	if left_panel:
 		print("Left Panel - 事件卡片数量: ", left_panel.event_cards.size())
 		
-		# 如果没有卡片，尝试手动创建
+		# 如果没有卡片，尝试从数据加载事件
 		if left_panel.event_cards.size() == 0:
-			print("左侧面板无卡片，手动创建样本卡片...")
-			left_panel.create_sample_event_cards(4)
+			print("左侧面板无卡片，通过事件系统重新加载...")
+			if event_system:
+				event_system.update_event_panel("character", left_panel)
 			
 			# 确保卡片容器可见
-			var container = left_panel.get_node_or_null("CardContainer")
+			var container = left_panel.get_node_or_null("ScrollContainer/CardContainer")
 			if container:
 				container.visible = true
 				print("卡片容器设置为可见状态")
@@ -488,3 +540,11 @@ func _check_event_cards():
 			for i in range(left_panel.event_cards.size()):
 				var card = left_panel.event_cards[i]
 				print("卡片 #", i+1, " - 标题: ", card.event_title, " 尺寸: ", card.size)
+
+# 添加初始化后验证方法
+func _verify_cards_after_initialization():
+	print("=== 初始化后验证 ===")
+	if event_system:
+		var left_panel = event_system.get_node_or_null("LeftPanel")
+		if left_panel and left_panel.has_method("validate_cards_state"):
+			left_panel.validate_cards_state()

@@ -16,6 +16,10 @@ func _ready():
 	reject_button.pressed.connect(_on_reject_button_pressed)
 	# 默认隐藏
 	visible = false
+	
+	# 确保弹窗显示在最顶层
+	z_index = 1000
+	print("事件弹窗z_index设置为: ", z_index)
 
 # 显示事件弹窗
 func show_event(event_data: Dictionary):
