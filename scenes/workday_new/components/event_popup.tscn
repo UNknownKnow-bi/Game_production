@@ -1,6 +1,11 @@
-[gd_scene load_steps=2 format=3 uid="uid://bm56twnc3fphx"]
+[gd_scene load_steps=5 format=3 uid="uid://bm56twnc3fphx"]
 
 [ext_resource type="Script" uid="uid://cy00evsxkkyea" path="res://scripts/workday_new/event_popup.gd" id="1_kj05t"]
+[ext_resource type="Texture2D" uid="uid://cj1qx703nww1v" path="res://assets/workday_new/ui/events/event_popup_background.png" id="2_background"]
+[ext_resource type="FontFile" uid="uid://cdja3eosvd0mn" path="res://assets/font/LEEEAFHEI-REGULAR.TTF" id="3_2ffqk"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_1"]
+texture = ExtResource("2_background")
 
 [node name="EventPopup" type="Control"]
 layout_mode = 3
@@ -33,6 +38,17 @@ offset_right = 942.0
 offset_bottom = 528.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_1")
+
+[node name="CloseButton" type="Button" parent="PopupPanel"]
+z_index = 10
+layout_mode = 1
+offset_left = 21.0
+offset_top = 27.0
+offset_right = 306.0
+offset_bottom = 104.0
+theme_override_font_sizes/font_size = 20
+flat = true
 
 [node name="EventImage" type="TextureRect" parent="PopupPanel"]
 layout_mode = 1
@@ -52,14 +68,15 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -250.0
-offset_top = 180.0
-offset_right = 250.0
-offset_bottom = 220.0
+offset_left = -856.0
+offset_top = 246.0
+offset_right = -356.0
+offset_bottom = 286.0
 grow_horizontal = 2
-theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("3_2ffqk")
+theme_override_font_sizes/font_size = 40
 text = "事件标题"
-horizontal_alignment = 1
 
 [node name="ContentText" type="RichTextLabel" parent="PopupPanel"]
 layout_mode = 1
@@ -68,13 +85,15 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -300.0
-offset_top = -50.0
-offset_right = 300.0
-offset_bottom = 150.0
+offset_left = -856.0
+offset_top = -112.0
+offset_right = -256.0
+offset_bottom = 88.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_font_sizes/normal_font_size = 16
+theme_override_colors/default_color = Color(0, 0, 0, 1)
+theme_override_fonts/normal_font = ExtResource("3_2ffqk")
+theme_override_font_sizes/normal_font_size = 30
 text = "事件内容描述..."
 fit_content = true
 

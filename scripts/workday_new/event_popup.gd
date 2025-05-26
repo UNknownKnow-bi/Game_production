@@ -1,12 +1,14 @@
 extends Control
 
 signal option_selected(option_id, event_id)
+signal popup_closed
 
 @onready var title_label = $PopupPanel/TitleLabel
 @onready var content_text = $PopupPanel/ContentText
 @onready var event_image = $PopupPanel/EventImage
 @onready var accept_button = $PopupPanel/ButtonsContainer/AcceptButton
 @onready var reject_button = $PopupPanel/ButtonsContainer/RejectButton
+@onready var close_button = $PopupPanel/CloseButton
 
 var current_event_id = -1
 
@@ -14,6 +16,7 @@ func _ready():
 	# 连接按钮信号
 	accept_button.pressed.connect(_on_accept_button_pressed)
 	reject_button.pressed.connect(_on_reject_button_pressed)
+	close_button.pressed.connect(_on_close_button_pressed)
 	# 默认隐藏
 	visible = false
 	
@@ -69,4 +72,8 @@ func _on_accept_button_pressed():
 
 func _on_reject_button_pressed():
 	option_selected.emit(0, current_event_id)
+	hide_popup()
+
+func _on_close_button_pressed():
+	popup_closed.emit()
 	hide_popup() 

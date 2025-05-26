@@ -426,6 +426,7 @@ func _show_event_popup(event):
 			# 将弹窗添加到UILayer中，确保在最顶层显示
 			ui_layer.add_child(popup)
 			popup.option_selected.connect(_on_event_option_selected)
+			popup.popup_closed.connect(_on_event_popup_closed)
 			print("事件弹窗已添加到UILayer")
 	
 	if popup:
@@ -451,6 +452,11 @@ func _on_event_option_selected(option_id: int, event_id: int):
 	if event_manager:
 		# 可以添加事件结果处理逻辑
 		pass
+
+# 处理事件弹窗关闭
+func _on_event_popup_closed():
+	print("事件弹窗被用户关闭")
+	# 可以添加额外的关闭处理逻辑
 
 # 保存事件系统布局
 func save_event_system_layout():
