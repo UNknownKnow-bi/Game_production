@@ -23,7 +23,7 @@ signal size_changed(new_size)
 signal card_event_clicked(game_event: GameEvent)
 
 # 卡片管理
-var event_cards: Array[CharacterEventCardFixed] = []
+var event_cards: Array = []  # 改为通用数组，支持多种卡片类型
 
 # 编辑器设置跟踪
 var _editor_positions_initialized = false

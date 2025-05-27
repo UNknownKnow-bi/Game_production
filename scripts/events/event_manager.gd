@@ -364,17 +364,17 @@ func create_event_with_error_handling(columns: Array, line_number: int) -> GameE
 		return null
 	
 	# 解析JSON字段
-	event.prerequisite_conditions = parse_json_field_safe(columns[7], "prerequisite_conditions", line_number)
+	event.prerequisite_conditions = parse_json_field_safe(columns[7])
 	
 	if not set_event_property_safe(event, "max_occurrences", columns[8], "int", line_number):
 		return null
 	if not set_event_property_safe(event, "cooldown", columns[9], "int", line_number):
 		return null
 	
-	event.global_check = parse_json_field_safe(columns[10], "global_check", line_number)
-	event.attribute_aggregation = parse_json_field_safe(columns[11], "attribute_aggregation", line_number)
-	event.success_results = parse_json_field_safe(columns[12], "success_results", line_number)
-	event.failure_results = parse_json_field_safe(columns[13], "failure_results", line_number)
+	event.global_check = parse_json_field_safe(columns[10])
+	event.attribute_aggregation = parse_json_field_safe(columns[11])
+	event.success_results = parse_json_field_safe(columns[12])
+	event.failure_results = parse_json_field_safe(columns[13])
 	
 	# 设置可选字符串字段（使用安全访问）
 	event.next_event_success = get_column_safe(columns, 14)
@@ -382,7 +382,7 @@ func create_event_with_error_handling(columns: Array, line_number: int) -> GameE
 	event.next_event_failure = get_column_safe(columns, 16)
 	event.next_event_delay_failure = get_column_safe(columns, 17)
 	
-	event.required_for_completion = parse_json_field_safe(get_column_safe(columns, 18), "required_for_completion", line_number)
+	event.required_for_completion = parse_json_field_safe(get_column_safe(columns, 18))
 	
 	# 设置可选路径字段（使用安全访问）
 	event.icon_path = get_column_safe(columns, 19)
@@ -419,23 +419,27 @@ func set_event_property_safe(event: GameEvent, property_name: String, value: Str
 	return true
 
 # 安全解析JSON字段
-func parse_json_field_safe(json_str: String, field_name: String, line_number: int) -> Dictionary:
-	if json_str.is_empty():
-		if detailed_debug_mode:
-			print("JSON字段 ", field_name, " 为空，返回空字典")
+func parse_json_field_safe(json_string: String) -> Dictionary:
+	if json_string.is_empty():
+		return {}
+	
+	var json = JSON.new()
+	var parse_result = json.parse(json_string)
+	if parse_result != OK:
+		print("JSON解析错误: ", json.get_error_message())
+		return {}
+	
+	var result = json.data
+	
+	# 确保返回Dictionary类型
+	if result is Dictionary:
+		return result
+	else:
+		print("JSON解析结果不是Dictionary类型，返回空字典。解析结果类型: ", typeof(result), "，值: ", result)
 		return {}
 	
 	if detailed_debug_mode:
-		print("解析JSON字段 ", field_name, ": \"", json_str, "\"")
-	
-	var json_parse_result = JSON.parse_string(json_str)
-	if json_parse_result != null:
-		if detailed_debug_mode:
-			print("✓ JSON解析成功: ", json_parse_result)
-		return json_parse_result
-	else:
-		printerr("✗ 第", line_number, "行: JSON解析错误 (", field_name, "): ", json_str)
-		return {}
+		print("解析JSON字段: ", json_string, " -> ", result)
 
 # 检查是否已有加载的数据
 func has_loaded_data() -> bool:

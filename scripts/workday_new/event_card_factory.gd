@@ -8,6 +8,8 @@ static func create_card(event_type: String):
 	match event_type:
 		"character":
 			card_scene_path = "res://scenes/workday_new/components/character_event_card_fixed.tscn"
+		"random":
+			card_scene_path = "res://scenes/workday_new/components/random_event_card.tscn"
 		_:
 			# 使用基础事件卡片
 			card_scene_path = "res://scenes/workday_new/components/base_event_card.tscn"
@@ -41,7 +43,7 @@ static func initialize_card_from_game_event(card, game_event: GameEvent):
 		print("EventCardFactory: 错误 - card或game_event为null")
 		return
 	
-	print("EventCardFactory: 开始初始化卡片 - 事件: ", game_event.event_name, " | 角色: ", game_event.character_name)
+	print("EventCardFactory: 开始初始化卡片 - 事件: ", game_event.event_name, " | 类型: ", game_event.get_event_category())
 	
 	# 设置游戏事件引用
 	card.set_game_event(game_event)
@@ -54,40 +56,59 @@ static func initialize_card_from_game_event(card, game_event: GameEvent):
 		print("EventCardFactory: ✗ 错误 - game_event设置失败")
 		return
 	
-	# 设置基本属性
+	# 根据卡片类型进行不同的初始化
+	if card is CharacterEventCardFixed:
+		_initialize_character_card(card, game_event)
+	elif card is RandomEventCard:
+		_initialize_random_card(card, game_event)
+	else:
+		# 通用卡片初始化
+		card.event_title = game_event.event_name
+		if card.has_method("set_event_status"):
+			card.event_status = "new"  # 默认状态
+
+# 初始化人物事件卡片
+static func _initialize_character_card(card: CharacterEventCardFixed, game_event: GameEvent):
 	card.event_title = game_event.event_name
+	card.character_name = game_event.character_name
 	card.event_status = "new"  # 默认状态
 	
-	# 人物事件特有属性
-	if card is CharacterEventCardFixed:
-		card.character_name = game_event.character_name
-		
-		# 自动获取角色图片
-		if not game_event.character_name.is_empty():
-			var character_image_path = CharacterMapping.get_character_image_path(game_event.character_name)
-			if not character_image_path.is_empty():
-				print("EventCardFactory: 找到角色图片路径: ", character_image_path)
-				var char_texture = load(character_image_path)
-				if char_texture:
-					card.character_texture = char_texture
-					card.region_enabled = true
-					card.region_y_position = 0.0
-					card.region_height = 0.45
-					print("EventCardFactory: ✓ 角色图片加载成功")
-				else:
-					print("EventCardFactory: ✗ 警告 - 无法加载角色图像: ", character_image_path)
+	# 自动获取角色图片
+	if not game_event.character_name.is_empty():
+		var character_image_path = CharacterMapping.get_character_image_path(game_event.character_name)
+		if not character_image_path.is_empty():
+			print("EventCardFactory: 找到角色图片路径: ", character_image_path)
+			var char_texture = load(character_image_path)
+			if char_texture:
+				card.character_texture = char_texture
+				card.region_enabled = true
+				card.region_y_position = 0.0
+				card.region_height = 0.45
+				print("EventCardFactory: ✓ 角色图片加载成功")
 			else:
-				print("EventCardFactory: ✗ 警告 - 未找到角色 '", game_event.character_name, "' 的图片路径")
+				print("EventCardFactory: ✗ 警告 - 无法加载角色图像: ", character_image_path)
 		else:
-			print("EventCardFactory: 事件无关联角色")
-		
-		# 设置统一字体大小
-		card.title_font_size = 50
-		card.name_font_size = 50
-		
-		print("EventCardFactory: ✓ 卡片初始化完成 - 标题: ", card.event_title, " | 角色: ", card.character_name)
+			print("EventCardFactory: ✗ 警告 - 未找到角色 '", game_event.character_name, "' 的图片路径")
 	else:
-		print("EventCardFactory: ✗ 错误 - 卡片类型不是CharacterEventCardFixed")
+		print("EventCardFactory: 事件无关联角色")
+	
+	# 设置统一字体大小
+	card.title_font_size = 50
+	card.name_font_size = 50
+	
+	print("EventCardFactory: ✓ 人物卡片初始化完成 - 标题: ", card.event_title, " | 角色: ", card.character_name)
+
+# 初始化随机事件卡片
+static func _initialize_random_card(card: RandomEventCard, game_event: GameEvent):
+	card.event_title = game_event.event_name
+	
+	# 根据事件状态设置完成状态（这里可以根据实际需求调整）
+	card.is_completed = false  # 默认为未完成
+	
+	# 设置字体大小
+	card.title_font_size = 24
+	
+	print("EventCardFactory: ✓ 随机卡片初始化完成 - 标题: ", card.event_title)
 
 # 从Dictionary初始化卡片（保持向后兼容）
 static func initialize_card_from_dictionary(card, event_data: Dictionary):
