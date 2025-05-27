@@ -1,13 +1,14 @@
-[gd_scene load_steps=11 format=3 uid="uid://ckd4mgqatkxnd"]
+[gd_scene load_steps=12 format=3 uid="uid://ckd4mgqatkxnd"]
 
 [ext_resource type="Script" uid="uid://deijiry5htitf" path="res://scripts/workday_new/workday_main_new.gd" id="1_vr1x0"]
 [ext_resource type="Texture2D" uid="uid://pywkdfx8n3kj" path="res://assets/workday_main_scene/ui/background.png" id="2_qrrlw"]
 [ext_resource type="Texture2D" uid="uid://d1iw48b42fv22" path="res://assets/workday_main_scene/ui/card_side_bar_char.png" id="3_2jyfy"]
 [ext_resource type="Texture2D" uid="uid://cjxh03jhqdync" path="res://assets/workday_main_scene/ui/card_side_bar_others.png" id="4_7v1hk"]
+[ext_resource type="Texture2D" uid="uid://bl7ikw50ctpnu" path="res://assets/workday_main_scene/ui/PC_new.png" id="5_35xbt"]
 [ext_resource type="Texture2D" uid="uid://kwb5siqgq1tm" path="res://assets/workday_main_scene/ui/rabbit_icon.png" id="5_70wdf"]
+[ext_resource type="FontFile" uid="uid://cdja3eosvd0mn" path="res://assets/font/LEEEAFHEI-REGULAR.TTF" id="6_35xbt"]
 [ext_resource type="Texture2D" uid="uid://b1iboc0t6qecj" path="res://assets/workday_main_scene/ui/bear_icon.png" id="6_yjvhx"]
 [ext_resource type="Texture2D" uid="uid://bew3b67ps7kcn" path="res://assets/workday_main_scene/ui/cup_icon.png" id="7_nwvl2"]
-[ext_resource type="Texture2D" uid="uid://eb6keaga1wls" path="res://assets/workday_main_scene/ui/PC.png" id="8_thnrw"]
 [ext_resource type="Script" uid="uid://bx4qwl6eaw7vx" path="res://scripts/workday_new/ui_controller_new.gd" id="9_8t40e"]
 [ext_resource type="PackedScene" uid="uid://dttjc7sij5lpw" path="res://scenes/workday_new/event_system_new.tscn" id="10_4u5xd"]
 
@@ -48,9 +49,35 @@ stretch_mode = 0
 z_index = 2
 
 [node name="PC" type="Sprite2D" parent="ContentLayer"]
-position = Vector2(1148.5, 523)
-scale = Vector2(1.20052, 1.03704)
-texture = ExtResource("8_thnrw")
+position = Vector2(1095.68, 556.001)
+scale = Vector2(1.19084, 0.993354)
+texture = ExtResource("5_35xbt")
+
+[node name="TextInput1" type="LineEdit" parent="ContentLayer"]
+z_index = 4
+offset_left = 702.0
+offset_top = 90.0
+offset_right = 876.0
+offset_bottom = 140.0
+theme_override_colors/font_color = Color(1, 0.988235, 0.937255, 1)
+theme_override_fonts/font = ExtResource("6_35xbt")
+theme_override_font_sizes/font_size = 30
+text = "邮箱"
+max_length = 50
+flat = true
+
+[node name="TextInput2" type="LineEdit" parent="ContentLayer"]
+z_index = 4
+offset_left = 1019.0
+offset_top = 90.0
+offset_right = 1319.0
+offset_bottom = 140.0
+theme_override_colors/font_color = Color(1, 0.988235, 0.937255, 1)
+theme_override_fonts/font = ExtResource("6_35xbt")
+theme_override_font_sizes/font_size = 30
+text = "备忘录"
+max_length = 50
+flat = true
 
 [node name="EventSystem" parent="ContentLayer" instance=ExtResource("10_4u5xd")]
 z_index = 3
@@ -59,7 +86,16 @@ offset_top = -48.0
 offset_right = 346.0
 offset_bottom = -48.0
 scale = Vector2(0.995358, 1.00488)
+left_panel_position = Vector2(218.023, 620.366)
+middle_panel_position = Vector2(856.857, 1090.86)
+right_panel_position = Vector2(1068.55, 547.378)
 left_panel_size = Vector2(426, 980.004)
+
+[node name="LeftPanel" parent="ContentLayer/EventSystem" index="0"]
+offset_left = 5.02333
+offset_top = 131.359
+offset_right = 431.023
+offset_bottom = 1111.36
 
 [node name="EventFrame" parent="ContentLayer/EventSystem/LeftPanel" index="0"]
 offset_right = 276.998
@@ -71,11 +107,29 @@ offset_right = 2.00012
 offset_bottom = -18.3455
 
 [node name="MiddlePanel" parent="ContentLayer/EventSystem" index="1"]
-offset_top = 150.06
+offset_left = 292.357
+offset_top = 131.359
+offset_right = 1421.36
+offset_bottom = 2050.36
 
 [node name="ScrollContainer" parent="ContentLayer/EventSystem/MiddlePanel" index="1"]
 offset_top = 200.0
 offset_bottom = -20.0021
+
+[node name="RightPanel" parent="ContentLayer/EventSystem" index="2"]
+offset_left = 658.055
+offset_top = 127.378
+offset_right = 1479.05
+offset_bottom = 967.378
+
+[node name="EventFrame" parent="ContentLayer/EventSystem/RightPanel" index="0"]
+metadata/_edit_lock_ = true
+
+[node name="ScrollContainer" parent="ContentLayer/EventSystem/RightPanel" index="1"]
+offset_left = 0.0
+offset_top = 134.0
+offset_right = -4.99896
+offset_bottom = -85.0
 
 [node name="UILayer" type="CanvasLayer" parent="."]
 layer = 10

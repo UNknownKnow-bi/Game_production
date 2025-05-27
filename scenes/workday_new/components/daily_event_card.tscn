@@ -1,0 +1,55 @@
+[gd_scene load_steps=5 format=3 uid="uid://bse8kf4oo7t7k"]
+
+[ext_resource type="Script" uid="uid://l8a78u8rfdvn" path="res://scripts/workday_new/daily_event_card.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://dnd1piose7682" path="res://assets/workday_new/ui/events/daily_undo.png" id="2_bg"]
+[ext_resource type="FontFile" uid="uid://cdja3eosvd0mn" path="res://assets/font/LEEEAFHEI-REGULAR.TTF" id="4_font"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
+bg_color = Color(0.95, 0.95, 0.95, 0)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.7, 0.7, 0.7, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="DailyEventCard" type="PanelContainer"]
+custom_minimum_size = Vector2(400, 300)
+offset_right = 851.0
+offset_bottom = 200.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+script = ExtResource("1_script")
+
+[node name="CardContent" type="Control" parent="."]
+layout_mode = 2
+
+[node name="BackgroundImage" type="TextureRect" parent="CardContent"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 35.0
+offset_right = -25.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_bg")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EventTitle" type="Label" parent="CardContent"]
+layout_mode = 0
+offset_left = 74.0
+offset_top = 21.0
+offset_right = 562.0
+offset_bottom = 274.0
+theme_override_colors/font_color = Color(1, 0.988235, 0.937255, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 70
+text = "日常事件标题"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+text_overrun_behavior = 3

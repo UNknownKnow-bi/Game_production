@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://eb6keaga1wls"
-path="res://.godot/imported/PC.png-87acc9d5d98ab763bb9eefc131120221.ctex"
+uid="uid://e6bqj26d5q77"
+path="res://.godot/imported/daily_done_icon.png-c5cfbb75e67529d95022a13561f228d5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/workday_main_scene/ui/PC.png"
-dest_files=["res://.godot/imported/PC.png-87acc9d5d98ab763bb9eefc131120221.ctex"]
+source_file="res://assets/workday_new/ui/events/daily_done_icon.png"
+dest_files=["res://.godot/imported/daily_done_icon.png-c5cfbb75e67529d95022a13561f228d5.ctex"]
 
 [params]
 

@@ -3,6 +3,9 @@ extends Node
 
 # 根据事件类型创建卡片
 static func create_card(event_type: String):
+	print("=== EventCardFactory.create_card 开始 ===")
+	print("传入事件类型: ", event_type)
+	
 	var card_scene_path = ""
 	
 	match event_type:
@@ -10,15 +13,29 @@ static func create_card(event_type: String):
 			card_scene_path = "res://scenes/workday_new/components/character_event_card_fixed.tscn"
 		"random":
 			card_scene_path = "res://scenes/workday_new/components/random_event_card.tscn"
+		"daily":
+			card_scene_path = "res://scenes/workday_new/components/daily_event_card.tscn"
 		_:
 			# 使用基础事件卡片
 			card_scene_path = "res://scenes/workday_new/components/base_event_card.tscn"
 	
+	print("解析场景文件路径: ", card_scene_path)
+	
 	var card_scene = load(card_scene_path)
 	if card_scene:
-		return card_scene.instantiate()
+		print("✓ 场景文件加载成功")
+		var card_instance = card_scene.instantiate()
+		if card_instance:
+			print("✓ 场景实例化成功 - 类型: ", card_instance.get_class())
+			print("=== EventCardFactory.create_card 完成 ===")
+			return card_instance
+		else:
+			print("✗ 场景实例化失败")
+			print("=== EventCardFactory.create_card 失败 ===")
+			return null
 	else:
-		printerr("无法加载事件卡片场景: ", card_scene_path)
+		printerr("✗ 无法加载事件卡片场景: ", card_scene_path)
+		print("=== EventCardFactory.create_card 失败 ===")
 		return null
 
 # 初始化卡片内容 - 支持Dictionary和GameEvent两种数据源
@@ -39,33 +56,56 @@ static func initialize_card(card, event_data):
 
 # 从GameEvent对象初始化卡片
 static func initialize_card_from_game_event(card, game_event: GameEvent):
+	print("=== EventCardFactory.initialize_card_from_game_event 开始 ===")
+	
 	if card == null or game_event == null:
-		print("EventCardFactory: 错误 - card或game_event为null")
+		print("✗ 错误 - card或game_event为null")
+		print("  card: ", card)
+		print("  game_event: ", game_event)
+		print("=== EventCardFactory.initialize_card_from_game_event 失败 ===")
 		return
 	
-	print("EventCardFactory: 开始初始化卡片 - 事件: ", game_event.event_name, " | 类型: ", game_event.get_event_category())
+	print("✓ GameEvent对象验证通过")
+	print("  事件名称: ", game_event.event_name)
+	print("  事件类型: ", game_event.get_event_category())
+	print("  事件ID: ", game_event.event_id)
+	print("  卡片类型: ", card.get_class())
 	
 	# 设置游戏事件引用
+	print("正在设置game_event引用...")
 	card.set_game_event(game_event)
 	
 	# 验证设置是否成功
 	var set_event = card.get_game_event()
 	if set_event == game_event:
-		print("EventCardFactory: ✓ game_event设置成功 - ", game_event.event_name)
+		print("✓ game_event设置成功")
 	else:
-		print("EventCardFactory: ✗ 错误 - game_event设置失败")
+		print("✗ 错误 - game_event设置失败")
+		print("  期望: ", game_event)
+		print("  实际: ", set_event)
+		print("=== EventCardFactory.initialize_card_from_game_event 失败 ===")
 		return
+	
+	print("开始根据卡片类型进行初始化...")
 	
 	# 根据卡片类型进行不同的初始化
 	if card is CharacterEventCardFixed:
+		print("识别为人物事件卡片，调用_initialize_character_card")
 		_initialize_character_card(card, game_event)
 	elif card is RandomEventCard:
+		print("识别为随机事件卡片，调用_initialize_random_card")
 		_initialize_random_card(card, game_event)
+	elif card is DailyEventCard:
+		print("识别为日常事件卡片，调用_initialize_daily_card")
+		_initialize_daily_card(card, game_event)
 	else:
+		print("识别为通用卡片，进行基础初始化")
 		# 通用卡片初始化
 		card.event_title = game_event.event_name
 		if card.has_method("set_event_status"):
 			card.event_status = "new"  # 默认状态
+	
+	print("=== EventCardFactory.initialize_card_from_game_event 完成 ===")
 
 # 初始化人物事件卡片
 static func _initialize_character_card(card: CharacterEventCardFixed, game_event: GameEvent):
@@ -106,9 +146,21 @@ static func _initialize_random_card(card: RandomEventCard, game_event: GameEvent
 	card.is_completed = false  # 默认为未完成
 	
 	# 设置字体大小
-	card.title_font_size = 24
+	card.title_font_size = 120
 	
 	print("EventCardFactory: ✓ 随机卡片初始化完成 - 标题: ", card.event_title)
+
+# 初始化日常事件卡片
+static func _initialize_daily_card(card: DailyEventCard, game_event: GameEvent):
+	card.event_title = game_event.event_name
+	
+	# 根据事件状态设置完成状态（这里可以根据实际需求调整）
+	card.is_completed = false  # 默认为未完成
+	
+	# 设置字体大小
+	card.title_font_size = 70
+	
+	print("EventCardFactory: ✓ 日常卡片初始化完成 - 标题: ", card.event_title)
 
 # 从Dictionary初始化卡片（保持向后兼容）
 static func initialize_card_from_dictionary(card, event_data: Dictionary):

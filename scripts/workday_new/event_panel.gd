@@ -230,43 +230,79 @@ func _apply_properties():
 
 # 添加事件卡片
 func add_event_card(event_data, card_type: String = "character"):
+	print("=== EventPanel.add_event_card 开始 ===")
+	print("面板实例ID: ", get_instance_id())
+	print("传入事件数据: ", event_data)
+	print("传入卡片类型: ", card_type)
+	
 	if event_data == null:
+		print("✗ 事件数据为null，终止添加")
+		print("=== EventPanel.add_event_card 失败 ===")
 		return null
-		
-	# 记录事件数据用于调试
-	print("添加事件卡片: ", event_data, " 类型: ", card_type)
+	
+	print("✓ 事件数据验证通过")
 	
 	var card = null
 	
 	# 检查是否已经是BaseEventCard实例
 	if event_data is BaseEventCard:
+		print("事件数据已是BaseEventCard实例，直接使用")
 		card = event_data
 	else:
+		print("事件数据需要转换，调用EventCardFactory.create_card")
 		# 使用工厂创建卡片
 		card = EventCardFactory.create_card(card_type)
 		if card == null:
+			print("✗ EventCardFactory.create_card返回null")
+			print("=== EventPanel.add_event_card 失败 ===")
 			return null
-			
+		
+		print("✓ EventCardFactory.create_card成功，卡片类型: ", card.get_class())
+		
 		# 初始化卡片内容
+		print("调用EventCardFactory.initialize_card进行初始化")
 		EventCardFactory.initialize_card(card, event_data)
+		print("✓ 卡片初始化完成")
 	
 	# 将卡片添加到容器
+	print("正在将卡片添加到容器...")
+	print("card_container状态: ", "✓" if card_container else "✗", " - ", card_container)
+	
 	if card_container:
+		var children_before = card_container.get_child_count()
 		card_container.add_child(card)
+		var children_after = card_container.get_child_count()
+		print("✓ 卡片已添加到容器")
+		print("  容器子节点数量: ", children_before, " -> ", children_after)
+	else:
+		print("✗ card_container为null，无法添加卡片")
 	
 	# 连接卡片点击信号
+	print("正在连接卡片点击信号...")
 	if card.has_signal("card_clicked"):
+		print("✓ 卡片具有card_clicked信号")
 		var bound_callable = _on_card_clicked.bind(card)
 		if not card.card_clicked.is_connected(bound_callable):
-			print("EventPanel: 连接卡片信号 - ", card.event_title)
-			card.card_clicked.connect(bound_callable)
-			print("EventPanel: 信号连接成功")
+			print("连接信号到_on_card_clicked方法...")
+			var connection_result = card.card_clicked.connect(bound_callable)
+			if connection_result == OK:
+				print("✓ 卡片信号连接成功 - ", card.event_title)
+			else:
+				print("✗ 卡片信号连接失败，错误代码: ", connection_result)
 		else:
-			print("EventPanel: 信号已连接，跳过 - ", card.event_title)
+			print("信号已连接，跳过 - ", card.event_title)
+	else:
+		print("✗ 卡片没有card_clicked信号")
 	
 	# 将卡片添加到事件卡片列表
+	print("将卡片添加到event_cards列表...")
+	var cards_before = event_cards.size()
 	event_cards.append(card)
+	var cards_after = event_cards.size()
+	print("✓ 卡片已添加到列表")
+	print("  event_cards数量: ", cards_before, " -> ", cards_after)
 	
+	print("=== EventPanel.add_event_card 完成 ===")
 	return card
 
 # 清除所有事件卡片
@@ -296,9 +332,13 @@ func show_empty_state(message: String = ""):
 
 # 卡片点击处理
 func _on_card_clicked(card):
-	print("EventPanel: 接收到卡片点击信号")
-	print("EventPanel: 卡片信息 - 标题: ", card.event_title, ", 类型: ", card.get_class())
-	print("EventPanel: 卡片被点击 - ", card.event_title)
+	print("=== EventPanel._on_card_clicked 触发 ===")
+	print("面板实例ID: ", get_instance_id())
+	print("点击的卡片: ", card)
+	print("卡片类型: ", card.get_class() if card else "null")
+	print("卡片标题: ", card.event_title if card and "event_title" in card else "未知")
+	print("卡片GameEvent: ", card.get_game_event() if card and card.has_method("get_game_event") else "无")
+	print("=== EventPanel._on_card_clicked 完成 ===")
 	
 	# 获取卡片关联的游戏事件并发射信号
 	var game_event = card.get_game_event()

@@ -207,24 +207,75 @@ func _on_events_updated():
 
 # 更新特定类别的事件面板
 func update_event_panel(category: String, panel: EventPanel):
+	print("=== EventSystem.update_event_panel 开始 ===")
+	print("更新类别: ", category)
+	print("面板实例: ", panel)
+	
 	var event_manager = get_node_or_null("/root/EventManager")
 	if not event_manager or not panel:
+		print("✗ EventManager或面板为null")
+		print("  EventManager: ", event_manager)
+		print("  Panel: ", panel)
+		print("=== EventSystem.update_event_panel 失败 ===")
 		return
 	
+	print("✓ EventManager和面板验证通过")
+	
 	var active_events = event_manager.get_active_events(category)
+	print("获取到的活跃事件数量: ", active_events.size())
+	
+	# 日常事件特定调试
+	if category == "daily":
+		print("=== 日常事件特定调试 ===")
+		print("右侧面板状态验证:")
+		print("  面板类型: ", panel.get_class())
+		print("  面板可见性: ", panel.visible)
+		print("  面板大小: ", panel.size)
+		print("  面板位置: ", panel.position)
+		print("  面板mouse_filter: ", panel.mouse_filter)
+		
+		if panel.has_method("get_card_container"):
+			var container = panel.get_card_container()
+			print("  卡片容器: ", container)
+			if container:
+				print("    容器类型: ", container.get_class())
+				print("    容器可见性: ", container.visible)
+				print("    容器大小: ", container.size)
+				print("    容器位置: ", container.position)
+				print("    容器mouse_filter: ", container.mouse_filter)
+		
+		for i in range(active_events.size()):
+			var event = active_events[i]
+			print("  日常事件 #", i+1, ":")
+			print("    ID: ", event.event_id)
+			print("    名称: ", event.event_name)
+			print("    类型: ", event.get_event_category())
+		print("=== 日常事件调试完成 ===")
 	
 	# 清除现有卡片
+	print("清除现有卡片...")
 	panel.clear_event_cards()
 	
 	# 如果没有活跃事件，显示空状态
 	if active_events.is_empty():
-		panel.show_empty_state("当前没有可用的" + get_category_display_name(category))
+		var empty_message = "当前没有可用的" + get_category_display_name(category)
+		print("显示空状态: ", empty_message)
+		panel.show_empty_state(empty_message)
+		print("=== EventSystem.update_event_panel 完成(空状态) ===")
 		return
 	
+	print("开始为每个活跃事件创建卡片...")
+	
 	# 为每个活跃事件创建卡片
-	for event in active_events:
+	for i in range(active_events.size()):
+		var event = active_events[i]
+		print("处理事件 #", i+1, ": ", event.event_name)
 		# 直接传递GameEvent对象，让EventCardFactory处理所有逻辑
-		panel.add_event_card(event, category)
+		var created_card = panel.add_event_card(event, category)
+		if created_card:
+			print("✓ 事件卡片创建成功")
+		else:
+			print("✗ 事件卡片创建失败")
 		
 	print("已为", category, "面板添加", active_events.size(), "个事件卡片")
 	
@@ -249,6 +300,7 @@ func update_event_panel(category: String, panel: EventPanel):
 	
 	print("有效卡片数量: ", valid_cards, "/", created_cards)
 	print("=== 验证完成 ===")
+	print("=== EventSystem.update_event_panel 完成 ===")
 
 # 获取类别显示名称
 func get_category_display_name(category: String) -> String:
