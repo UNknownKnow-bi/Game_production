@@ -68,14 +68,14 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -856.0
-offset_top = 246.0
-offset_right = -356.0
-offset_bottom = 286.0
+offset_left = -896.0
+offset_top = 270.0
+offset_right = -396.0
+offset_bottom = 340.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("3_2ffqk")
-theme_override_font_sizes/font_size = 40
+theme_override_font_sizes/font_size = 70
 text = "事件标题"
 
 [node name="ContentText" type="RichTextLabel" parent="PopupPanel"]

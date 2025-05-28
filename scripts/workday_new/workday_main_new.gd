@@ -22,6 +22,13 @@ const WindowSettings = preload("res://scripts/workday_new/project_settings_handl
 # 添加事件系统引用
 @onready var event_system = $ContentLayer/EventSystem
 
+# 添加时间和特权卡系统引用
+@onready var time_display = $UILayer/TimeDisplay
+@onready var privilege_card_display = $UILayer/PrivilegeCardDisplay
+@onready var card_draw_panel = $UILayer/CardDrawPanel
+@onready var card_detail_panel = $UILayer/CardDetailPanel
+@onready var simple_warning_popup = $UILayer/SimpleWarningPopup
+
 # 游戏状态
 var is_fullscreen = false
 
@@ -46,6 +53,9 @@ func _ready():
 	
 	# 初始化事件系统
 	initialize_event_system()
+	
+	# 初始化时间和特权卡系统
+	initialize_time_and_card_system()
 	
 	# 添加简单的窗口大小变化处理
 	get_tree().get_root().size_changed.connect(Callable(self, "_on_window_size_changed_simple"))
@@ -250,9 +260,8 @@ func _on_beer_icon_mouse_entered():
 	beer_icon.modulate = Color(1.2, 1.2, 1.2, 1.0)
 
 func _on_beer_icon_mouse_exited():
-	# 如果没有激活，则恢复正常颜色
-	if ui_controller and not ui_controller.is_beer_active:
-		beer_icon.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	# 鼠标离开时直接恢复正常颜色（beer图标不再使用激活状态）
+	beer_icon.modulate = Color(1.0, 1.0, 1.0, 1.0)
 
 # Cup图标事件处理
 func _on_cup_icon_pressed():
@@ -554,3 +563,95 @@ func _verify_cards_after_initialization():
 		var left_panel = event_system.get_node_or_null("LeftPanel")
 		if left_panel and left_panel.has_method("validate_cards_state"):
 			left_panel.validate_cards_state()
+
+# 初始化时间和特权卡系统
+func initialize_time_and_card_system():
+	print("Workday Main: 初始化时间和特权卡系统")
+	
+	# 连接特权卡显示组件的信号
+	if privilege_card_display:
+		privilege_card_display.card_detail_requested.connect(_on_card_detail_requested)
+		privilege_card_display.force_draw_requested.connect(_on_force_draw_requested)
+		print("Workday Main: 特权卡显示组件信号已连接")
+	
+	# 连接抽卡面板的信号
+	if card_draw_panel:
+		card_draw_panel.card_drawn.connect(_on_card_drawn)
+		card_draw_panel.panel_closed.connect(_on_draw_panel_closed)
+		card_draw_panel.force_draw_warning_requested.connect(_on_force_draw_warning_requested)
+		print("Workday Main: 抽卡面板信号已连接")
+	
+	# 连接卡片详情面板的信号
+	if card_detail_panel:
+		card_detail_panel.panel_closed.connect(_on_detail_panel_closed)
+		card_detail_panel.draw_card_requested.connect(_on_draw_card_requested)
+		print("Workday Main: 卡片详情面板信号已连接")
+	
+	# 连接简单警告弹窗的信号
+	if simple_warning_popup:
+		simple_warning_popup.popup_closed.connect(_on_warning_popup_closed)
+		print("Workday Main: 简单警告弹窗信号已连接")
+	
+	# 连接TimeManager信号
+	if TimeManager:
+		TimeManager.scene_type_changed.connect(_on_scene_type_changed)
+		print("Workday Main: TimeManager信号已连接")
+	
+	# 在所有信号连接完成后，手动触发特权卡显示更新
+	# 这确保了如果没有卡片，会正确触发强制抽卡
+	if privilege_card_display:
+		privilege_card_display.update_display()
+		print("Workday Main: 手动触发特权卡显示更新")
+
+# 处理卡片详情请求
+func _on_card_detail_requested():
+	print("Workday Main: 显示卡片详情面板")
+	if card_detail_panel:
+		card_detail_panel.show_panel()
+
+# 处理抽卡请求
+func _on_draw_card_requested():
+	print("Workday Main: 显示抽卡面板")
+	if card_draw_panel:
+		card_draw_panel.show_panel()
+
+# 处理卡片抽取完成
+func _on_card_drawn(card_type: String):
+	print("Workday Main: 成功抽取卡片 - ", card_type)
+
+# 处理抽卡面板关闭
+func _on_draw_panel_closed():
+	print("Workday Main: 抽卡面板已关闭")
+
+# 处理详情面板关闭
+func _on_detail_panel_closed():
+	print("Workday Main: 详情面板已关闭")
+
+# 处理场景类型变化
+func _on_scene_type_changed(new_scene_type: String):
+	print("Workday Main: 场景类型变化到 ", new_scene_type)
+	
+	# 如果切换到周末，则切换场景
+	if new_scene_type == "weekend":
+		print("Workday Main: 切换到周末场景")
+		get_tree().change_scene_to_file("res://scenes/weekend/weekend_main.tscn")
+
+# 处理强制抽卡请求
+func _on_force_draw_requested():
+	print("Workday Main: 收到强制抽卡请求")
+	if card_draw_panel:
+		card_draw_panel.show_panel_forced()
+
+# 处理强制抽卡警告请求
+func _on_force_draw_warning_requested():
+	print("Workday Main: 显示强制抽卡警告")
+	_show_simple_warning("提示", "必须抽取一张特权卡才能继续")
+
+# 处理警告弹窗关闭
+func _on_warning_popup_closed():
+	print("Workday Main: 警告弹窗已关闭")
+
+# 显示简单警告弹窗
+func _show_simple_warning(title: String = "提示", content: String = "必须抽取一张特权卡才能继续"):
+	if simple_warning_popup:
+		simple_warning_popup.show_warning(title, content)

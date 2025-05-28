@@ -17,9 +17,11 @@ corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
 [node name="DailyEventCard" type="PanelContainer"]
-custom_minimum_size = Vector2(400, 300)
-offset_right = 851.0
-offset_bottom = 200.0
+custom_minimum_size = Vector2(500, 300)
+offset_left = 2.0
+offset_top = 2.0
+offset_right = 853.0
+offset_bottom = 302.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_1")
 script = ExtResource("1_script")
 

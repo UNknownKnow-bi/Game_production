@@ -1,0 +1,91 @@
+[gd_scene load_steps=2 format=3 uid="uid://mxu2f3stt10q"]
+
+[ext_resource type="Script" uid="uid://md5wqy8bn731" path="res://scripts/ui/card_detail_panel.gd" id="1_4hdqr"]
+
+[node name="CardDetailPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_4hdqr")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.7)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(1000, 700)
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/PanelContainer"]
+layout_mode = 2
+
+[node name="HeaderContainer" type="HBoxContainer" parent="CenterContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer/HeaderContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "特权卡详情"
+horizontal_alignment = 1
+
+[node name="CloseButton" type="Button" parent="CenterContainer/PanelContainer/VBoxContainer/HeaderContainer"]
+layout_mode = 2
+text = "关闭"
+
+[node name="HSeparator" type="HSeparator" parent="CenterContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="CenterContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="CardGrid" type="HBoxContainer" parent="CenterContainer/PanelContainer/VBoxContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NoCardsLabel" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+text = "暂无特权卡"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BottomContainer" type="HBoxContainer" parent="CenterContainer/PanelContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+
+[node name="Spacer" type="Control" parent="CenterContainer/PanelContainer/VBoxContainer/BottomContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ActionContainer" type="VBoxContainer" parent="CenterContainer/PanelContainer/VBoxContainer/BottomContainer"]
+custom_minimum_size = Vector2(200, 80)
+layout_mode = 2
+
+[node name="DrawButton" type="Button" parent="CenterContainer/PanelContainer/VBoxContainer/BottomContainer/ActionContainer"]
+custom_minimum_size = Vector2(150, 35)
+layout_mode = 2
+text = "抽取特权卡"
+
+[node name="CardCountLabel" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer/BottomContainer/ActionContainer"]
+layout_mode = 2
+text = "0/28"
+horizontal_alignment = 1
+
+[connection signal="pressed" from="CenterContainer/PanelContainer/VBoxContainer/HeaderContainer/CloseButton" to="." method="_on_close_button_pressed"]
+[connection signal="pressed" from="CenterContainer/PanelContainer/VBoxContainer/BottomContainer/ActionContainer/DrawButton" to="." method="_on_draw_button_pressed"]

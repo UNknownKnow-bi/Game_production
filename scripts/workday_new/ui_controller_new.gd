@@ -15,7 +15,6 @@ var card_display_panel = null
 
 # 交互状态
 var is_rabbit_active = false
-var is_beer_active = false
 var is_cup_active = false
 var is_card_char_active = false
 var is_card_others_active = false
@@ -39,16 +38,15 @@ func handle_rabbit_interaction():
 
 # 处理Beer图标交互
 func handle_beer_interaction():
-	is_beer_active = !is_beer_active
-	print("Beer状态: ", is_beer_active)
+	print("Beer图标被点击 - 准备进入下一回合")
 	
-	# 更新视觉效果
-	if is_beer_active:
-		beer_icon.modulate = Color(1.5, 1.5, 1.5, 1.0)
+	# 直接推进回合，触发场景切换到weekend
+	if TimeManager:
+		print("Beer: 调用TimeManager推进回合")
+		TimeManager.advance_round()
+		print("Beer: 回合已推进，场景即将切换到weekend...")
 	else:
-		beer_icon.modulate = Color(1.0, 1.0, 1.0, 1.0)
-	
-	# 实现交互逻辑，例如显示特定菜单或面板
+		print("Beer: 错误 - TimeManager不存在")
 
 # 处理Cup图标交互
 func handle_cup_interaction():
@@ -127,7 +125,6 @@ func _on_card_display_panel_closed():
 # 重置所有交互状态
 func reset_all_interactions():
 	is_rabbit_active = false
-	is_beer_active = false
 	is_cup_active = false
 	is_card_char_active = false
 	is_card_others_active = false

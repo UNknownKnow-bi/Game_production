@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://ckd4mgqatkxnd"]
+[gd_scene load_steps=18 format=3 uid="uid://ckd4mgqatkxnd"]
 
 [ext_resource type="Script" uid="uid://deijiry5htitf" path="res://scripts/workday_new/workday_main_new.gd" id="1_vr1x0"]
 [ext_resource type="Texture2D" uid="uid://pywkdfx8n3kj" path="res://assets/workday_main_scene/ui/background.png" id="2_qrrlw"]
@@ -10,7 +10,13 @@
 [ext_resource type="Texture2D" uid="uid://b1iboc0t6qecj" path="res://assets/workday_main_scene/ui/bear_icon.png" id="6_yjvhx"]
 [ext_resource type="Texture2D" uid="uid://bew3b67ps7kcn" path="res://assets/workday_main_scene/ui/cup_icon.png" id="7_nwvl2"]
 [ext_resource type="Script" uid="uid://bx4qwl6eaw7vx" path="res://scripts/workday_new/ui_controller_new.gd" id="9_8t40e"]
+[ext_resource type="Texture2D" uid="uid://dte2b0hqefara" path="res://assets/workday_new/ui/events/calendar.png" id="9_fcl1x"]
 [ext_resource type="PackedScene" uid="uid://dttjc7sij5lpw" path="res://scenes/workday_new/event_system_new.tscn" id="10_4u5xd"]
+[ext_resource type="PackedScene" uid="uid://b8me3b3oudkck" path="res://scenes/ui/time_display.tscn" id="11_timeui"]
+[ext_resource type="PackedScene" uid="uid://dnxds6o0vwrir" path="res://scenes/ui/privilege_card_display.tscn" id="12_cardui"]
+[ext_resource type="PackedScene" uid="uid://c78r0gghink4b" path="res://scenes/ui/card_draw_panel.tscn" id="13_drawui"]
+[ext_resource type="PackedScene" uid="uid://mxu2f3stt10q" path="res://scenes/ui/card_detail_panel.tscn" id="14_detailui"]
+[ext_resource type="PackedScene" uid="uid://bxm8k5n2vwqr8" path="res://scenes/ui/simple_warning_popup.tscn" id="15_warningui"]
 
 [node name="WorkdayMain" type="Node2D"]
 script = ExtResource("1_vr1x0")
@@ -26,20 +32,20 @@ texture = ExtResource("2_qrrlw")
 z_index = 1
 
 [node name="CardSideChar" type="TextureButton" parent="CardSideLayer"]
-offset_left = 182.0
-offset_top = 106.0
-offset_right = 863.0
-offset_bottom = 1168.0
+offset_left = 120.0
+offset_top = 112.0
+offset_right = 801.0
+offset_bottom = 1174.0
 rotation = -0.202458
 scale = Vector2(0.5, 0.5)
 texture_normal = ExtResource("3_2jyfy")
 stretch_mode = 0
 
 [node name="CardSideOthers" type="TextureButton" parent="CardSideLayer"]
-offset_left = 178.0
-offset_top = 256.0
-offset_right = 844.0
-offset_bottom = 1323.0
+offset_left = 112.0
+offset_top = 272.0
+offset_right = 778.0
+offset_bottom = 1339.0
 rotation = -0.338594
 scale = Vector2(0.5, 0.5)
 texture_normal = ExtResource("4_7v1hk")
@@ -55,10 +61,10 @@ texture = ExtResource("5_35xbt")
 
 [node name="TextInput1" type="LineEdit" parent="ContentLayer"]
 z_index = 4
-offset_left = 702.0
-offset_top = 90.0
-offset_right = 876.0
-offset_bottom = 140.0
+offset_left = 696.0
+offset_top = 88.0
+offset_right = 870.0
+offset_bottom = 138.0
 theme_override_colors/font_color = Color(1, 0.988235, 0.937255, 1)
 theme_override_fonts/font = ExtResource("6_35xbt")
 theme_override_font_sizes/font_size = 30
@@ -76,6 +82,34 @@ theme_override_colors/font_color = Color(1, 0.988235, 0.937255, 1)
 theme_override_fonts/font = ExtResource("6_35xbt")
 theme_override_font_sizes/font_size = 30
 text = "备忘录"
+max_length = 50
+flat = true
+
+[node name="TextInput3" type="LineEdit" parent="ContentLayer"]
+z_index = 4
+offset_left = 155.0
+offset_top = 114.0
+offset_right = 343.0
+offset_bottom = 164.0
+rotation = -0.200713
+theme_override_colors/font_color = Color(1, 0.988235, 0.937255, 1)
+theme_override_fonts/font = ExtResource("6_35xbt")
+theme_override_font_sizes/font_size = 40
+text = "角色"
+max_length = 50
+flat = true
+
+[node name="TextInput4" type="LineEdit" parent="ContentLayer"]
+z_index = 4
+offset_left = 144.0
+offset_top = 272.0
+offset_right = 444.0
+offset_bottom = 322.0
+rotation = -0.338594
+theme_override_colors/font_color = Color(1, 0.988235, 0.937255, 1)
+theme_override_fonts/font = ExtResource("6_35xbt")
+theme_override_font_sizes/font_size = 40
+text = "道具"
 max_length = 50
 flat = true
 
@@ -98,13 +132,14 @@ offset_right = 431.023
 offset_bottom = 1111.36
 
 [node name="EventFrame" parent="ContentLayer/EventSystem/LeftPanel" index="0"]
-offset_right = 276.998
+offset_right = 277.0
+offset_bottom = -23.001
 
 [node name="ScrollContainer" parent="ContentLayer/EventSystem/LeftPanel" index="1"]
-offset_left = -4.0
-offset_top = 104.659
-offset_right = 2.00012
-offset_bottom = -18.3455
+offset_left = 2.0
+offset_top = 105.0
+offset_right = -8.99969
+offset_bottom = -31.001
 
 [node name="MiddlePanel" parent="ContentLayer/EventSystem" index="1"]
 offset_left = 292.357
@@ -133,6 +168,59 @@ offset_bottom = -85.0
 
 [node name="UILayer" type="CanvasLayer" parent="."]
 layer = 10
+
+[node name="TimeDisplay" parent="UILayer" instance=ExtResource("11_timeui")]
+offset_left = 1464.0
+offset_top = 72.0
+offset_right = 1776.0
+offset_bottom = 360.0
+
+[node name="Background" parent="UILayer/TimeDisplay" index="0"]
+texture = ExtResource("9_fcl1x")
+
+[node name="VBoxContainer" parent="UILayer/TimeDisplay" index="1"]
+offset_left = 8.0
+offset_top = 40.0
+offset_right = -12.0
+offset_bottom = -8.0
+theme_override_constants/separation = 60
+
+[node name="RoundLabel" parent="UILayer/TimeDisplay/VBoxContainer" index="0"]
+theme_override_fonts/font = ExtResource("6_35xbt")
+theme_override_font_sizes/font_size = 30
+
+[node name="TaskCountdownLabel" parent="UILayer/TimeDisplay/VBoxContainer" index="1"]
+theme_override_fonts/font = ExtResource("6_35xbt")
+theme_override_font_sizes/font_size = 30
+
+[node name="PrivilegeCardDisplay" parent="UILayer" instance=ExtResource("12_cardui")]
+offset_left = 1456.0
+offset_top = 392.0
+offset_right = 1728.0
+offset_bottom = 748.0
+
+[node name="VBoxContainer" parent="UILayer/PrivilegeCardDisplay" index="0"]
+offset_left = -8.0
+offset_top = 64.0
+offset_right = -8.0
+offset_bottom = 64.0
+
+[node name="CardButton" parent="UILayer/PrivilegeCardDisplay/VBoxContainer/CardContainer" index="0"]
+offset_top = -88.0
+
+[node name="StatusLabel" parent="UILayer/PrivilegeCardDisplay/VBoxContainer/CardContainer" index="1"]
+theme_override_colors/font_color = Color(0.926411, 0.868389, 0.982779, 1)
+theme_override_fonts/font = ExtResource("6_35xbt")
+theme_override_font_sizes/font_size = 20
+
+[node name="CardDrawPanel" parent="UILayer" instance=ExtResource("13_drawui")]
+visible = false
+
+[node name="CardDetailPanel" parent="UILayer" instance=ExtResource("14_detailui")]
+visible = false
+
+[node name="SimpleWarningPopup" parent="UILayer" instance=ExtResource("15_warningui")]
+visible = false
 
 [node name="RabbitIcon" type="TextureButton" parent="UILayer"]
 offset_left = 162.0
@@ -168,3 +256,5 @@ script = ExtResource("9_8t40e")
 [editable path="ContentLayer/EventSystem/LeftPanel"]
 [editable path="ContentLayer/EventSystem/MiddlePanel"]
 [editable path="ContentLayer/EventSystem/RightPanel"]
+[editable path="UILayer/TimeDisplay"]
+[editable path="UILayer/PrivilegeCardDisplay"]

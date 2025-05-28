@@ -1,0 +1,245 @@
+[gd_scene load_steps=2 format=3 uid="uid://c78r0gghink4b"]
+
+[ext_resource type="Script" uid="uid://bu7800bq507g1" path="res://scripts/ui/card_draw_panel.gd" id="1_3hdqr"]
+
+[node name="CardDrawPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_3hdqr")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.7)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(800, 600)
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/PanelContainer"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+text = "抽取特权卡"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="CenterContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="CardGrid" type="GridContainer" parent="CenterContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+columns = 2
+
+[node name="Card1" type="Control" parent="CenterContainer/PanelContainer/VBoxContainer/CardGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="HighlightBorder" type="ColorRect" parent="CenterContainer/PanelContainer/VBoxContainer/CardGrid/Card1"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(1, 0.8, 0, 1)
+
+[node name="Card1Image" type="TextureRect" parent="CenterContainer/PanelContainer/VBoxContainer/CardGrid/Card1"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 5.0
+offset_top = 5.0
+offset_right = -5.0
+offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Card1Label" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer/CardGrid/Card1"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -50.0
+offset_top = -30.0
+offset_right = 50.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "挥霍卡"
+horizontal_alignment = 1
+
+[node name="Card2" type="Control" parent="CenterContainer/PanelContainer/VBoxContainer/CardGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="HighlightBorder" type="ColorRect" parent="CenterContainer/PanelContainer/VBoxContainer/CardGrid/Card2"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(1, 0.8, 0, 1)
+
+[node name="Card2Image" type="TextureRect" parent="CenterContainer/PanelContainer/VBoxContainer/CardGrid/Card2"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 5.0
+offset_top = 5.0
+offset_right = -5.0
+offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Card2Label" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer/CardGrid/Card2"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -50.0
+offset_top = -30.0
+offset_right = 50.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "装X卡"
+horizontal_alignment = 1
+
+[node name="Card3" type="Control" parent="CenterContainer/PanelContainer/VBoxContainer/CardGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="HighlightBorder" type="ColorRect" parent="CenterContainer/PanelContainer/VBoxContainer/CardGrid/Card3"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(1, 0.8, 0, 1)
+
+[node name="Card3Image" type="TextureRect" parent="CenterContainer/PanelContainer/VBoxContainer/CardGrid/Card3"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 5.0
+offset_top = 5.0
+offset_right = -5.0
+offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Card3Label" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer/CardGrid/Card3"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -50.0
+offset_top = -30.0
+offset_right = 50.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "陷害卡"
+horizontal_alignment = 1
+
+[node name="Card4" type="Control" parent="CenterContainer/PanelContainer/VBoxContainer/CardGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="HighlightBorder" type="ColorRect" parent="CenterContainer/PanelContainer/VBoxContainer/CardGrid/Card4"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(1, 0.8, 0, 1)
+
+[node name="Card4Image" type="TextureRect" parent="CenterContainer/PanelContainer/VBoxContainer/CardGrid/Card4"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 5.0
+offset_top = 5.0
+offset_right = -5.0
+offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Card4Label" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer/CardGrid/Card4"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -50.0
+offset_top = -30.0
+offset_right = 50.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "秘会卡"
+horizontal_alignment = 1
+
+[node name="HSeparator2" type="HSeparator" parent="CenterContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="ButtonContainer" type="HBoxContainer" parent="CenterContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="DrawButton" type="Button" parent="CenterContainer/PanelContainer/VBoxContainer/ButtonContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "抽取卡片"
+
+[node name="ConfirmButton" type="Button" parent="CenterContainer/PanelContainer/VBoxContainer/ButtonContainer"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+text = "确认"
+
+[connection signal="pressed" from="CenterContainer/PanelContainer/VBoxContainer/ButtonContainer/DrawButton" to="." method="_on_draw_button_pressed"]
+[connection signal="pressed" from="CenterContainer/PanelContainer/VBoxContainer/ButtonContainer/ConfirmButton" to="." method="_on_confirm_button_pressed"]

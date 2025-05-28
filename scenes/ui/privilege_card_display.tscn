@@ -1,0 +1,59 @@
+[gd_scene load_steps=2 format=3 uid="uid://dnxds6o0vwrir"]
+
+[ext_resource type="Script" uid="uid://2svcg1q0xqxp" path="res://scripts/ui/privilege_card_display.gd" id="1_2hdqr"]
+
+[node name="PrivilegeCardDisplay" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 200.0
+offset_bottom = 300.0
+script = ExtResource("1_2hdqr")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CardContainer" type="Control" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="CardButton" type="Button" parent="VBoxContainer/CardContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+
+[node name="CardImage" type="TextureRect" parent="VBoxContainer/CardContainer/CardButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StatusLabel" type="Label" parent="VBoxContainer/CardContainer"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -50.0
+offset_top = -25.0
+offset_right = 50.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "剩余 7 回合"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[connection signal="pressed" from="VBoxContainer/CardContainer/CardButton" to="." method="_on_card_button_pressed"]
