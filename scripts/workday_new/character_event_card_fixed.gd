@@ -420,8 +420,8 @@ func _update_round_info():
 		print("⚠ CharacterEventCardFixed: EventManager未找到，回合信息不更新")
 		return
 	
-	# 统一显示格式：持续：X回合
-	var duration_text = "持续：" + str(game_event.duration_rounds) + "回合"
+	# 统一显示格式：只显示数字
+	var duration_text = str(game_event.duration_rounds)
 	round_info.text = duration_text
 	print("CharacterEventCardFixed: 回合信息显示:", duration_text)
 

@@ -20,9 +20,9 @@ class_name WeekendCharacterEventCard
 @export var border_color: Color = Color(0.7, 0.7, 0.7, 1.0) : set = set_border_color
 @export var corner_radius: int = 8 : set = set_corner_radius
 @export var border_width: int = 2 : set = set_border_width
-@export var background_color: Color = Color("#fff8f1") : set = set_background_color
-@export var title_font_size: int = 30 : set = set_title_font_size
-@export var name_font_size: int = 25 : set = set_name_font_size
+@export var background_color: Color = Color(1, 1, 1, 0) : set = set_background_color
+@export var title_font_size: int = 28 : set = set_title_font_size
+@export var name_font_size: int = 23 : set = set_name_font_size
 
 # 背景纹理属性
 @export_group("背景纹理")
@@ -36,7 +36,6 @@ var _original_texture: Texture2D = null
 @onready var character_image = $CardContent/EventCharacterPortrait
 @onready var title_label = $CardContent/EventTitle
 @onready var name_label = $CardContent/EventPerson
-@onready var status_icon = $CardContent/StatusIcon
 @onready var round_info = $CardContent/RoundInfo
 @onready var background_image = $CardContent/BackgroundImage
 
@@ -67,8 +66,6 @@ func _ready():
 		title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if name_label:
 		name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	if status_icon:
-		status_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if round_info:
 		round_info.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if character_image:
@@ -117,18 +114,7 @@ func set_event_status(status: String):
 	# 更新完成状态
 	is_completed = (status == "dealing")
 	
-	# 更新状态文本
-	if is_instance_valid(status_icon):
-		print("WeekendCharacterEventCard: 更新StatusIcon文本...")
-		
-		if status == "new":
-			status_icon.text = "New"
-		else:
-			status_icon.text = "Dealing"
-		
-		print("✓ WeekendCharacterEventCard: StatusIcon文本更新完成: ", status_icon.text)
-	else:
-		print("⚠ WeekendCharacterEventCard: status_icon无效，无法更新文本")
+	print("✓ WeekendCharacterEventCard: 事件状态更新完成: ", event_status)
 	
 	# 更新背景图片
 	_update_background_texture()
@@ -311,7 +297,7 @@ func _update_round_info():
 	if not game_event or not round_info:
 		return
 	
-	var duration_text = "持续：" + str(game_event.duration_rounds) + "回合"
+	var duration_text = str(game_event.duration_rounds)
 	round_info.text = duration_text
 	print("WeekendCharacterEventCard: 回合信息显示:", duration_text)
 

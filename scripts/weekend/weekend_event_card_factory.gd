@@ -246,7 +246,7 @@ static func _generate_random_positions_for_cards(cards: Array, container: Contro
 	var max_attempts = 100
 	
 	# 获取卡片大小（假设所有卡片大小相同）
-	var card_size = Vector2(350, 200)  # 默认卡片大小
+	var card_size = Vector2(240, 140)  # 更新的卡片大小
 	if cards.size() > 0 and cards[0].has_method("get_size"):
 		card_size = cards[0].get_size()
 	

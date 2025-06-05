@@ -8,7 +8,7 @@ extends Node
 
 # 随机位置配置
 @export var enable_random_positioning: bool = false
-@export var min_card_distance: float = 20.0
+@export var min_card_distance: float = 15.0
 @export var max_position_attempts: int = 100
 @export var hotzone_padding: Vector2 = Vector2(10, 10)
 
@@ -296,8 +296,8 @@ func _generate_random_positions(card_count: int, container: Control) -> Array[Ve
 	var container_size = container.size
 	var usable_area = container_size - hotzone_padding * 2
 	
-	# 假设卡片大小（应该从实际卡片获取，这里使用默认值）
-	var card_size = Vector2(350, 200)  # WeekendRandomEventCard的默认大小
+	# 更新卡片大小为新的尺寸
+	var card_size = Vector2(240, 140)
 	
 	print("容器大小: ", container_size)
 	print("可用区域: ", usable_area)

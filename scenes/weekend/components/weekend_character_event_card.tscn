@@ -17,13 +17,13 @@ corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
 [node name="WeekendCharacterEventCard" type="PanelContainer"]
-custom_minimum_size = Vector2(350, 200)
-offset_right = 350.0
-offset_bottom = 200.0
+custom_minimum_size = Vector2(240, 140)
+offset_right = 240.0
+offset_bottom = 140.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_1")
 script = ExtResource("1_script")
 region_height = 0.33
-background_color = Color(1, 0.945098, 0.854902, 1)
+background_color = Color(1, 0.945098, 0.854902, 0)
 
 [node name="CardContent" type="Control" parent="."]
 layout_mode = 2
@@ -41,22 +41,22 @@ stretch_mode = 5
 
 [node name="EventCharacterPortrait" type="TextureRect" parent="CardContent"]
 layout_mode = 0
-offset_left = 200.0
-offset_top = 50.0
-offset_right = 330.0
-offset_bottom = 180.0
+offset_left = 91.0
+offset_top = -6.0
+offset_right = 185.0
+offset_bottom = 74.0
 expand_mode = 1
 stretch_mode = 5
 
 [node name="EventTitle" type="Label" parent="CardContent"]
 layout_mode = 0
-offset_left = 21.0
-offset_top = 43.0
-offset_right = 201.0
-offset_bottom = 113.0
+offset_left = 11.0
+offset_top = 36.0
+offset_right = 165.0
+offset_bottom = 77.0
 theme_override_colors/font_color = Color(1, 0.988235, 0.937255, 1)
 theme_override_fonts/font = ExtResource("3_font")
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 25
 text = "事件标题"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -65,41 +65,28 @@ text_overrun_behavior = 3
 
 [node name="EventPerson" type="Label" parent="CardContent"]
 layout_mode = 0
-offset_left = 16.0
-offset_top = 113.0
-offset_right = 196.0
-offset_bottom = 143.0
+offset_left = 10.0
+offset_top = 76.0
+offset_right = 164.0
+offset_bottom = 101.0
 theme_override_colors/font_color = Color(1, 0.988235, 0.937255, 1)
 theme_override_fonts/font = ExtResource("3_font")
-theme_override_font_sizes/font_size = 25
+theme_override_font_sizes/font_size = 20
 text = "相关人物"
 horizontal_alignment = 1
 vertical_alignment = 1
 clip_text = true
 text_overrun_behavior = 3
 
-[node name="StatusIcon" type="Label" parent="CardContent"]
-layout_mode = 0
-offset_left = 250.0
-offset_top = 10.0
-offset_right = 340.0
-offset_bottom = 40.0
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_fonts/font = ExtResource("3_font")
-theme_override_font_sizes/font_size = 20
-text = "NEW"
-horizontal_alignment = 1
-vertical_alignment = 1
-
 [node name="RoundInfo" type="Label" parent="CardContent"]
 layout_mode = 0
-offset_left = 252.0
-offset_top = 81.0
-offset_right = 345.0
-offset_bottom = 111.0
+offset_left = 165.0
+offset_top = 34.0
+offset_right = 228.0
+offset_bottom = 103.0
 theme_override_colors/font_color = Color(1, 0.988235, 0.937255, 1)
 theme_override_fonts/font = ExtResource("3_font")
-theme_override_font_sizes/font_size = 18
-text = "持续回合: 5"
+theme_override_font_sizes/font_size = 25
+text = "5"
 horizontal_alignment = 1
 vertical_alignment = 1

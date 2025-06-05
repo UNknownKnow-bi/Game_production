@@ -3,14 +3,20 @@ extends Node
 
 # 热区配置
 @export var hotzone_count: int = 1
-@export var cards_per_hotzone: int = 3
+@export var cards_per_hotzone: int = 5
 @export var card_spacing: int = 15
 
 # 随机位置配置
 @export var enable_random_positioning: bool = false
-@export var min_card_distance: float = 20.0
+@export var min_card_distance: float = 15.0
 @export var max_position_attempts: int = 100
 @export var hotzone_padding: Vector2 = Vector2(10, 10)
+
+# 卡片尺寸和分布配置
+@export var card_size: Vector2 = Vector2(240, 140)
+@export var enable_diagonal_distribution: bool = true
+@export var corner_region_ratio: float = 0.25
+@export var max_cards_display: int = 6
 
 # 热区容器引用
 var hotzone_container: Control = null
@@ -64,18 +70,32 @@ func set_hotzone_container(container: Control):
 
 # 设置热区容器布局
 func _setup_hotzone_container(container: Control):
+	print("=== WeekendEventHotzoneManager._setup_hotzone_container 开始 ===")
+	print("容器类型: ", container.get_class())
+	print("随机定位模式: ", enable_random_positioning)
+	
 	# 为随机定位准备容器
 	if enable_random_positioning:
 		# 确保容器没有自动布局，这样我们可以手动设置位置
 		container.set_clip_contents(true)  # 防止卡片超出边界
-		print("Weekend事件热区容器配置为随机定位模式")
+		
+		# 如果是布局容器，需要特殊处理
+		if container is VBoxContainer or container is HBoxContainer:
+			print("⚠ 警告: 检测到布局容器，随机定位可能受到干扰")
+			print("建议将容器类型改为Control以获得最佳随机定位效果")
+		
+		print("✓ Weekend事件热区容器配置为随机定位模式")
 	else:
 		# 传统布局设置
 		if container is VBoxContainer:
 			container.add_theme_constant_override("separation", card_spacing)
+			print("✓ VBoxContainer间距设置为:", card_spacing)
 		elif container is HBoxContainer:
 			container.add_theme_constant_override("separation", card_spacing)
-		print("Weekend事件热区容器配置为传统布局模式")
+			print("✓ HBoxContainer间距设置为:", card_spacing)
+		print("✓ Weekend事件热区容器配置为传统布局模式")
+	
+	print("=== WeekendEventHotzoneManager._setup_hotzone_container 完成 ===")
 
 # 显示weekend事件卡片
 func display_weekend_events(events: Array[GameEvent]):
@@ -226,26 +246,40 @@ func _clear_hotzone():
 func _create_cards_with_random_positioning(events: Array):
 	print("=== WeekendEventHotzoneManager._create_cards_with_random_positioning 开始 ===")
 	print("事件数量: ", events.size())
+	print("最大显示卡片数: ", max_cards_display)
+	print("随机定位启用: ", enable_random_positioning)
+	print("对角分布启用: ", enable_diagonal_distribution)
 	
-	# 生成随机位置
-	var positions = _generate_random_positions(events.size())
-	print("生成了", positions.size(), "个随机位置")
+	# 限制显示的卡片数量
+	var events_to_show = min(events.size(), max_cards_display)
+	var limited_events = events.slice(0, events_to_show)
+	
+	print("实际将显示的事件数量: ", limited_events.size())
+	
+	# 生成位置 - 根据是否启用对角分布选择算法
+	var positions: Array[Vector2] = []
+	if enable_diagonal_distribution:
+		positions = _generate_diagonal_scattered_positions(limited_events.size())
+		print("✓ 使用对角散乱分布算法")
+	else:
+		positions = _generate_random_positions(limited_events.size())
+		print("✓ 使用常规随机分布算法")
+	
+	print("生成了", positions.size(), "个位置")
 	
 	# 为每个事件创建卡片并设置位置
-	for i in range(events.size()):
-		var event = events[i]
+	for i in range(limited_events.size()):
+		var event = limited_events[i]
 		var position = positions[i] if i < positions.size() else Vector2.ZERO
 		
-		print("处理事件: ", event.event_name, " (", event.event_type, ")")
-		print("  character_name原始: '", event.character_name, "' (长度:", event.character_name.length(), ")")
+		print("处理事件", i+1, ": ", event.event_name, " (", event.event_type, ")")
+		print("  分配位置: ", position)
 		
 		# 清理character_name字段，处理占位符
 		var cleaned_character_name = event.character_name.strip_edges()
 		# 将各种占位符识别为空字符串
 		if cleaned_character_name == "{}" or cleaned_character_name == "null" or cleaned_character_name == "NULL":
 			cleaned_character_name = ""
-		
-		print("  character_name清理后: '", cleaned_character_name, "' (长度:", cleaned_character_name.length(), ")")
 		
 		# 根据事件类型选择场景
 		var card_scene: PackedScene = null
@@ -265,12 +299,14 @@ func _create_cards_with_random_positioning(events: Array):
 			print("✗ 卡片实例化失败: ", event.event_name)
 			continue
 		
+		print("✓ 卡片实例化成功，类型: ", card_instance.get_class())
+		
 		# 添加到容器
 		hotzone_container.add_child(card_instance)
+		print("✓ 卡片已添加到容器")
 		
-		# 设置随机位置
-		card_instance.position = position
-		print("卡片", event.event_name, "设置位置: ", position)
+		# 设置随机位置 - 延迟一帧确保容器布局完成
+		call_deferred("_set_card_position_deferred", card_instance, position, event.event_name)
 		
 		# 初始化卡片 - 优先使用完整初始化方法
 		if card_instance.has_method("initialize_from_game_event"):
@@ -294,6 +330,28 @@ func _create_cards_with_random_positioning(events: Array):
 	
 	print("=== WeekendEventHotzoneManager._create_cards_with_random_positioning 完成 ===")
 
+# 延迟设置卡片位置
+func _set_card_position_deferred(card_instance: Node, position: Vector2, event_name: String):
+	if is_instance_valid(card_instance):
+		card_instance.position = position
+		print("✓ 延迟设置卡片位置: ", event_name, " -> ", position)
+		
+		# 验证位置是否生效
+		call_deferred("_verify_card_position", card_instance, position, event_name)
+	else:
+		print("✗ 卡片实例无效，无法设置位置: ", event_name)
+
+# 验证卡片位置
+func _verify_card_position(card_instance: Node, expected_position: Vector2, event_name: String):
+	if is_instance_valid(card_instance):
+		var actual_position = card_instance.position
+		if actual_position.distance_to(expected_position) < 1.0:
+			print("✓ 卡片位置验证成功: ", event_name, " 位置: ", actual_position)
+		else:
+			print("⚠ 卡片位置异常: ", event_name, " 期望: ", expected_position, " 实际: ", actual_position)
+	else:
+		print("✗ 卡片实例无效，无法验证位置: ", event_name)
+
 # 生成随机位置算法
 func _generate_random_positions(card_count: int) -> Array[Vector2]:
 	print("=== WeekendEventHotzoneManager._generate_random_positions 开始 ===")
@@ -307,30 +365,124 @@ func _generate_random_positions(card_count: int) -> Array[Vector2]:
 	var container_size = hotzone_container.size
 	var usable_area = container_size - hotzone_padding * 2
 	
-	# 假设卡片大小
-	var card_size = Vector2(350, 200)
+	# 使用类属性卡片大小
+	var effective_card_size = card_size
 	
 	print("容器大小: ", container_size)
 	print("可用区域: ", usable_area)
-	print("卡片大小: ", card_size)
+	print("卡片大小: ", effective_card_size)
 	
 	# 确保可用区域足够放置卡片
-	if usable_area.x < card_size.x or usable_area.y < card_size.y:
+	if usable_area.x < effective_card_size.x or usable_area.y < effective_card_size.y:
 		print("⚠ 容器太小，使用默认位置")
 		for i in range(card_count):
-			positions.append(Vector2(hotzone_padding.x, hotzone_padding.y + i * (card_size.y + min_card_distance)))
+			positions.append(Vector2(hotzone_padding.x, hotzone_padding.y + i * (effective_card_size.y + min_card_distance)))
 		return positions
 	
+	# 选择分布算法
+	if enable_diagonal_distribution:
+		return _generate_diagonal_scattered_positions(card_count)
+	
 	# 计算可放置的最大范围
-	var max_x = usable_area.x - card_size.x
-	var max_y = usable_area.y - card_size.y
+	var max_x = usable_area.x - effective_card_size.x
+	var max_y = usable_area.y - effective_card_size.y
 	
 	for i in range(card_count):
-		var position = _find_non_overlapping_position(positions, Vector2(max_x, max_y), card_size)
+		var position = _find_non_overlapping_position(positions, Vector2(max_x, max_y), effective_card_size)
 		positions.append(position)
 		print("位置", i+1, ": ", position)
 	
 	print("=== WeekendEventHotzoneManager._generate_random_positions 完成 ===")
+	return positions
+
+# 生成对角散乱分布位置
+func _generate_diagonal_scattered_positions(card_count: int) -> Array[Vector2]:
+	print("=== WeekendEventHotzoneManager._generate_diagonal_scattered_positions 开始 ===")
+	print("需要生成", card_count, "个对角散乱位置")
+	
+	var positions: Array[Vector2] = []
+	var container_size = hotzone_container.size
+	var usable_area = container_size - hotzone_padding * 2
+	var effective_card_size = card_size
+	
+	print("容器尺寸: ", container_size)
+	print("可用区域: ", usable_area) 
+	print("卡片尺寸: ", effective_card_size)
+	print("内边距: ", hotzone_padding)
+	
+	# 确保可用区域足够
+	if usable_area.x < effective_card_size.x or usable_area.y < effective_card_size.y:
+		print("⚠ 可用区域太小，使用后备布局")
+		for i in range(card_count):
+			var pos = Vector2(hotzone_padding.x + i * 50, hotzone_padding.y + i * 30)
+			positions.append(pos)
+		return positions
+	
+	# 计算角落区域大小
+	var corner_width = usable_area.x * corner_region_ratio
+	var corner_height = usable_area.y * corner_region_ratio
+	
+	print("角落区域尺寸: ", corner_width, "x", corner_height)
+	print("角落区域比例: ", corner_region_ratio)
+	
+	for i in range(card_count):
+		var position: Vector2
+		
+		if i == 0:
+			# 第一张卡片：左上角区域
+			var max_x = max(0, corner_width - effective_card_size.x)
+			var max_y = max(0, corner_height - effective_card_size.y)
+			var x = hotzone_padding.x + randf() * max_x
+			var y = hotzone_padding.y + randf() * max_y
+			position = Vector2(x, y)
+			print("卡片", i+1, "放置在左上角: ", position)
+			
+		elif i == 1:
+			# 第二张卡片：右下角区域
+			var start_x = hotzone_padding.x + (usable_area.x - corner_width)
+			var start_y = hotzone_padding.y + (usable_area.y - corner_height)
+			var max_x = max(0, corner_width - effective_card_size.x)
+			var max_y = max(0, corner_height - effective_card_size.y)
+			var x = start_x + randf() * max_x
+			var y = start_y + randf() * max_y
+			position = Vector2(x, y)
+			print("卡片", i+1, "放置在右下角: ", position)
+			
+		elif i == 2:
+			# 第三张卡片：右上角或左下角随机选择
+			if randf() > 0.5:
+				# 右上角
+				var start_x = hotzone_padding.x + (usable_area.x - corner_width)
+				var max_x = max(0, corner_width - effective_card_size.x)
+				var max_y = max(0, corner_height - effective_card_size.y)
+				var x = start_x + randf() * max_x
+				var y = hotzone_padding.y + randf() * max_y
+				position = Vector2(x, y)
+				print("卡片", i+1, "放置在右上角: ", position)
+			else:
+				# 左下角
+				var start_y = hotzone_padding.y + (usable_area.y - corner_height)
+				var max_x = max(0, corner_width - effective_card_size.x)
+				var max_y = max(0, corner_height - effective_card_size.y)
+				var x = hotzone_padding.x + randf() * max_x
+				var y = start_y + randf() * max_y
+				position = Vector2(x, y)
+				print("卡片", i+1, "放置在左下角: ", position)
+		else:
+			# 后续卡片：在剩余空间中散乱分布
+			var max_x = max(0, usable_area.x - effective_card_size.x)
+			var max_y = max(0, usable_area.y - effective_card_size.y)
+			position = _find_non_overlapping_position(positions, Vector2(max_x, max_y), effective_card_size)
+			print("卡片", i+1, "散乱分布: ", position)
+		
+		# 确保位置在边界内
+		position.x = clamp(position.x, hotzone_padding.x, container_size.x - effective_card_size.x - hotzone_padding.x)
+		position.y = clamp(position.y, hotzone_padding.y, container_size.y - effective_card_size.y - hotzone_padding.y)
+		
+		positions.append(position)
+		print("  最终位置: ", position)
+	
+	print("=== WeekendEventHotzoneManager._generate_diagonal_scattered_positions 完成 ===")
 	return positions
 
 # 寻找不重叠的位置

@@ -12,7 +12,7 @@ class_name WeekendRandomEventCard
 @export var border_color: Color = Color(0.7, 0.7, 0.7, 1.0) : set = set_border_color
 @export var corner_radius: int = 8 : set = set_corner_radius
 @export var border_width: int = 2 : set = set_border_width
-@export var title_font_size: int = 24 : set = set_title_font_size
+@export var title_font_size: int = 32 : set = set_title_font_size
 
 # 节点引用
 @onready var background_image = $CardContent/BackgroundImage

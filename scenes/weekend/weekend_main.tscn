@@ -159,12 +159,13 @@ offset_right = 1578.0
 offset_bottom = 640.0
 theme_override_constants/separation = 15
 
-[node name="WeekendEventHotzone4" type="VBoxContainer" parent="UILayer"]
+[node name="WeekendEventHotzone4" type="Control" parent="UILayer"]
+layout_mode = 3
+anchors_preset = 0
 offset_left = 816.0
 offset_top = 256.0
 offset_right = 1324.0
-offset_bottom = 785.0
-theme_override_constants/separation = 15
+offset_bottom = 820.0
 
 [editable path="UILayer/TimeDisplay"]
 [editable path="UILayer/PrivilegeCardDisplay"]

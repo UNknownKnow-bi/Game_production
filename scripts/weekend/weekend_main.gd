@@ -369,14 +369,33 @@ func _test_weekend_cards_in_hotzones():
 		print("✗ 周末热区管理器未初始化")
 		return
 	
-	# 使用WeekendEventHotzoneManager显示weekend character和random事件
-	weekend_hotzone_manager.display_weekend_events(weekend_test_events)
+	print("测试前的配置状态:")
+	print("  热区容器类型: ", weekend_event_hotzone.get_class())
+	print("  热区容器尺寸: ", weekend_event_hotzone.size)
+	print("  热区管理器随机定位: ", weekend_hotzone_manager.enable_random_positioning)
+	print("  热区管理器对角分布: ", weekend_hotzone_manager.enable_diagonal_distribution)
 	
 	# 启用随机定位测试
 	weekend_hotzone_manager.set_random_positioning(true)
+	print("✓ 启用随机定位")
+	
+	# 启用对角分布模式
+	weekend_hotzone_manager.enable_diagonal_distribution = true
+	print("✓ 启用对角分布模式")
+	
+	# 打印当前设置
+	print("当前配置:")
+	print("  cards_per_hotzone: ", weekend_hotzone_manager.cards_per_hotzone)
+	print("  max_cards_display: ", weekend_hotzone_manager.max_cards_display)
+	print("  card_size: ", weekend_hotzone_manager.card_size)
+	print("  min_card_distance: ", weekend_hotzone_manager.min_card_distance)
+	print("  corner_region_ratio: ", weekend_hotzone_manager.corner_region_ratio)
+	
+	# 使用WeekendEventHotzoneManager显示weekend character和random事件
+	weekend_hotzone_manager.display_weekend_events(weekend_test_events)
 	
 	print("✓ 周末卡片热区测试完成")
-	
+
 # 处理热区卡片点击
 func _on_hotzone_card_clicked(game_event: GameEvent):
 	print("Weekend Main: 热区卡片被点击 - ", game_event.event_name)
