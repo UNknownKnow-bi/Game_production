@@ -7,7 +7,7 @@ extends Resource
 @export var event_group_name: String
 @export var character_name: String
 @export var valid_rounds: Array[int] = []
-@export var duration_rounds: int
+@export var duration_rounds: int = 1
 @export var prerequisite_conditions: Dictionary = {}
 @export var max_occurrences: int
 @export var cooldown: int
@@ -42,15 +42,23 @@ func get_event_category() -> String:
     return "unknown"
 
 # 检查事件是否在当前回合有效
-func is_valid_in_round(round_number: int) -> bool:
-    # 检查valid_rounds是否包含当前回合
-    if valid_rounds.is_empty():
-        print("事件 ", event_name, " - valid_rounds为空，默认有效")
+func is_valid_in_round(round_number: int, event_manager: EventManager = null) -> bool:
+    # 检查事件是否已完成
+    var is_completed = false
+    if event_manager and event_manager.completed_events.has(event_id):
+        is_completed = true
+        var completion_data = event_manager.completed_events[event_id]
+        var completed_round = completion_data.completed_round
+        
+        # 已完成事件显示duration_rounds时长
+        var display_end = completed_round + duration_rounds - 1
+        var in_display_period = round_number <= display_end
+        print("事件 ", event_name, " - 已完成显示检查: 完成回合=", completed_round, ", 持续=", duration_rounds, ", 当前=", round_number, ", 显示结束=", display_end, ", 结果=", in_display_period)
+        return in_display_period
+    else:
+        # 未完成事件始终显示（出现条件由prerequisite_conditions控制）
+        print("事件 ", event_name, " - 未完成事件: 当前回合=", round_number, ", 始终显示=true")
         return true
-    
-    var is_valid = round_number in valid_rounds
-    print("事件 ", event_name, " - 回合检查: 当前回合=", round_number, ", 有效回合=", valid_rounds, ", 结果=", is_valid)
-    return is_valid
 
 # 新增字段访问方法
 func get_character_name() -> String:

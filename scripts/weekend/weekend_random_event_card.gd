@@ -1,5 +1,5 @@
 extends PanelContainer
-class_name RandomEventCard
+class_name WeekendRandomEventCard
 
 # 内容属性
 @export_group("内容")
@@ -55,7 +55,7 @@ func _ready():
 	_apply_content()
 	_update_textures()
 	
-	print("RandomEventCard就绪: ", event_title)
+	print("WeekendRandomEventCard就绪: ", event_title)
 
 # 内容属性更新方法
 func set_event_title(text: String):
@@ -113,10 +113,10 @@ func _update_textures():
 	# 更新背景图片（基于当前is_completed状态）
 	if is_completed:
 		background_image.texture = random_done_texture
-		print("RandomEventCard: 设置背景为完成状态 - random_done_texture")
+		print("WeekendRandomEventCard: 设置背景为完成状态 - random_done_texture")
 	else:
 		background_image.texture = random_undo_texture
-		print("RandomEventCard: 设置背景为未完成状态 - random_undo_texture")
+		print("WeekendRandomEventCard: 设置背景为未完成状态 - random_undo_texture")
 	
 	# 更新状态数字显示（仅显示逻辑）
 	_update_status_number()
@@ -133,17 +133,17 @@ func _update_status_number(force_event_manager_check: bool = false):
 		var event_manager = get_node_or_null("/root/EventManager")
 		if event_manager:
 			display_completed = event_manager.is_event_completed(game_event.event_id)
-			print("RandomEventCard: 使用EventManager状态进行显示 - ", display_completed)
+			print("WeekendRandomEventCard: 使用EventManager状态进行显示 - ", display_completed)
 	
-	print("RandomEventCard: 状态显示检查 - 事件ID:", game_event.event_id, " 显示状态:", display_completed)
-	print("RandomEventCard: 数据检查 - duration_rounds:", game_event.duration_rounds, " valid_rounds:", game_event.valid_rounds)
+	print("WeekendRandomEventCard: 状态显示检查 - 事件ID:", game_event.event_id, " 显示状态:", display_completed)
+	print("WeekendRandomEventCard: 数据检查 - duration_rounds:", game_event.duration_rounds, " valid_rounds:", game_event.valid_rounds)
 	
 	# 仅更新显示内容，不修改卡片状态
 	if display_completed:
 		# 事件已完成，显示持续回合数
 		var duration_text = str(game_event.duration_rounds)
 		status_icon.text = duration_text
-		print("RandomEventCard: 显示完成状态，duration_rounds:", duration_text)
+		print("WeekendRandomEventCard: 显示完成状态，duration_rounds:", duration_text)
 	else:
 		# 事件未处理，显示有效回合数
 		var valid_text = ""
@@ -155,25 +155,25 @@ func _update_status_number(force_event_manager_check: bool = false):
 			valid_text = "全部"
 		
 		status_icon.text = valid_text
-		print("RandomEventCard: 显示未完成状态，valid_rounds:", valid_text)
-		
+		print("WeekendRandomEventCard: 显示未完成状态，valid_rounds:", valid_text)
+
 # 与EventManager同步状态（独立的同步逻辑）
 func _sync_with_event_manager():
 	if not game_event:
-		print("RandomEventCard: 无game_event，跳过同步")
+		print("WeekendRandomEventCard: 无game_event，跳过同步")
 		return
 	
 	var event_manager = get_node_or_null("/root/EventManager")
 	if not event_manager:
-		print("⚠ RandomEventCard: EventManager未找到，无法同步状态")
+		print("⚠ WeekendRandomEventCard: EventManager未找到，无法同步状态")
 		return
 	
 	var manager_completed = event_manager.is_event_completed(game_event.event_id)
-	print("RandomEventCard: 状态同步检查 - 当前卡片状态:", is_completed, " EventManager状态:", manager_completed)
+	print("WeekendRandomEventCard: 状态同步检查 - 当前卡片状态:", is_completed, " EventManager状态:", manager_completed)
 	
 	if manager_completed != is_completed:
-		print("RandomEventCard: 检测到状态不一致，进行同步: ", is_completed, " -> ", manager_completed)
-		print("RandomEventCard: 事件", game_event.event_id, "(", game_event.event_name, ") 状态同步")
+		print("WeekendRandomEventCard: 检测到状态不一致，进行同步: ", is_completed, " -> ", manager_completed)
+		print("WeekendRandomEventCard: 事件", game_event.event_id, "(", game_event.event_name, ") 状态同步")
 		
 		# 先设置状态
 		set_completed(manager_completed)
@@ -182,26 +182,26 @@ func _sync_with_event_manager():
 		if is_instance_valid(background_image):
 			var expected_texture = random_done_texture if manager_completed else random_undo_texture
 			var actual_texture = background_image.texture
-			print("RandomEventCard: 背景纹理验证")
+			print("WeekendRandomEventCard: 背景纹理验证")
 			print("  期望纹理: ", expected_texture)
 			print("  实际纹理: ", actual_texture)
 			print("  纹理匹配: ", actual_texture == expected_texture)
 			
 			# 如果纹理不匹配，强制更新
 			if actual_texture != expected_texture:
-				print("⚠ RandomEventCard: 背景纹理不匹配，强制更新")
+				print("⚠ WeekendRandomEventCard: 背景纹理不匹配，强制更新")
 				background_image.texture = expected_texture
-				print("✓ RandomEventCard: 强制设置背景纹理为: ", expected_texture)
+				print("✓ WeekendRandomEventCard: 强制设置背景纹理为: ", expected_texture)
 		
-		print("✓ RandomEventCard: 状态同步完成")
+		print("✓ WeekendRandomEventCard: 状态同步完成")
 	else:
-		print("✓ RandomEventCard: 状态已一致，无需同步")
+		print("✓ WeekendRandomEventCard: 状态已一致，无需同步")
 
 # 处理点击事件
 func _on_gui_input(event):
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-			print("RandomEventCard点击: ", event_title)
+			print("WeekendRandomEventCard点击: ", event_title)
 			card_clicked.emit()
 			
 			# 如果有关联的游戏事件，发送更详细的信号
@@ -212,30 +212,30 @@ func _on_gui_input(event):
 # 游戏事件管理方法
 func set_game_event(event: GameEvent) -> void:
 	game_event = event
-	print("RandomEventCard: 设置game_event - ", event.event_name if event else "null")
+	print("WeekendRandomEventCard: 设置game_event - ", event.event_name if event else "null")
 	
 	# 连接EventManager信号（确保在设置事件时信号已连接）
 	_connect_event_manager_signals()
 	
 	# 检查并同步初始完成状态
 	if event:
-		print("RandomEventCard: 开始初始状态同步...")
+		print("WeekendRandomEventCard: 开始初始状态同步...")
 		# 使用新的状态同步方法
 		call_deferred("_sync_with_event_manager")
 	else:
 		set_completed(false)
-		print("RandomEventCard: 无事件，设置为默认未完成状态")
+		print("WeekendRandomEventCard: 无事件，设置为默认未完成状态")
 
 func get_game_event() -> GameEvent:
 	return game_event
 
 # 获取卡片类型
 func get_card_type() -> String:
-	return "random"
+	return "weekend_random"
 
 # 统一状态访问接口实现
 func get_completion_status() -> bool:
-	# RandomEventCard使用is_completed管理状态
+	# WeekendRandomEventCard使用is_completed管理状态
 	return is_completed
 
 func set_completion_status(completed: bool):
@@ -246,7 +246,7 @@ func get_status_description() -> String:
 	# 返回详细状态描述，用于调试
 	var event_id = game_event.event_id if game_event else -1
 	var event_name = game_event.event_name if game_event else "null"
-	return "RandomEventCard[" + str(event_id) + ":" + event_name + "] is_completed: " + str(is_completed) + " (completed: " + str(get_completion_status()) + ")"
+	return "WeekendRandomEventCard[" + str(event_id) + ":" + event_name + "] is_completed: " + str(is_completed) + " (completed: " + str(get_completion_status()) + ")"
 
 # 从GameEvent初始化卡片
 func initialize_from_game_event(event: GameEvent):
@@ -258,35 +258,35 @@ func initialize_from_game_event(event: GameEvent):
 	
 	# set_game_event已经会检查并设置正确的初始完成状态，无需再次强制设置
 	
-	print("RandomEventCard: 从GameEvent初始化完成 - ", event.event_name)
+	print("WeekendRandomEventCard: 从GameEvent初始化完成 - ", event.event_name)
 
 # 连接EventManager信号
 func _connect_event_manager_signals():
 	var event_manager = get_node_or_null("/root/EventManager")
 	if not event_manager:
-		print("⚠ RandomEventCard: EventManager未找到，无法连接信号")
+		print("⚠ WeekendRandomEventCard: EventManager未找到，无法连接信号")
 		return
 	
 	if not event_manager.event_completed.is_connected(_on_event_completed):
 		event_manager.event_completed.connect(_on_event_completed)
-		print("RandomEventCard: 已连接EventManager的event_completed信号")
+		print("WeekendRandomEventCard: 已连接EventManager的event_completed信号")
 
 # 处理事件完成信号
 func _on_event_completed(event_id: int):
-	print("RandomEventCard: 收到事件完成信号 - event_id:", event_id)
+	print("WeekendRandomEventCard: 收到事件完成信号 - event_id:", event_id)
 	
 	if not game_event:
-		print("RandomEventCard: 无game_event，忽略信号")
+		print("WeekendRandomEventCard: 无game_event，忽略信号")
 		return
 		
 	if game_event.event_id == event_id:
-		print("RandomEventCard: 信号匹配当前事件，开始状态同步")
-		print("RandomEventCard: 当前状态 - ", get_status_description())
+		print("WeekendRandomEventCard: 信号匹配当前事件，开始状态同步")
+		print("WeekendRandomEventCard: 当前状态 - ", get_status_description())
 		
 		# 使用独立的状态同步方法
 		_sync_with_event_manager()
 		
-		print("RandomEventCard: 更新后状态 - ", get_status_description())
-		print("RandomEventCard: 事件完成处理完毕 - ", event_id)
+		print("WeekendRandomEventCard: 更新后状态 - ", get_status_description())
+		print("WeekendRandomEventCard: 事件完成处理完毕 - ", event_id)
 	else:
-		print("RandomEventCard: 信号不匹配当前事件 (当前:", game_event.event_id, " 信号:", event_id, ")") 
+		print("WeekendRandomEventCard: 信号不匹配当前事件 (当前:", game_event.event_id, " 信号:", event_id, ")") 

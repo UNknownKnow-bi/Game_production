@@ -74,6 +74,16 @@ func show_panel(forced: bool = false):
 		title_label.text = "抽取特权卡"
 	
 	visible = true
+	
+	# 确保面板在其父节点的顶层渲染
+	if get_parent():
+		get_parent().move_child(self, get_parent().get_child_count() - 1)
+		print("Card Draw Panel: 已移动到父节点的最上层位置")
+		print("Card Draw Panel: 父节点子节点总数: ", get_parent().get_child_count())
+		print("Card Draw Panel: 当前在父节点中的索引: ", get_index())
+	else:
+		print("Card Draw Panel: 警告 - 未找到父节点，无法移动到顶层")
+	
 	print("Card Draw Panel: 显示抽卡面板，强制模式: ", is_forced_mode)
 
 # 显示强制抽卡面板

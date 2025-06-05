@@ -59,6 +59,11 @@ func save_game_state():
 		var cards_data = PrivilegeCardManager.save_cards_data()
 		save_data.merge(cards_data)
 	
+	# 添加已完成事件数据
+	var event_manager = get_node_or_null("/root/EventManager")
+	if event_manager and event_manager.has_method("get_completed_events_data"):
+		save_data["completed_events"] = event_manager.completed_events
+	
 	var file = FileAccess.open(SAVE_FILE_PATH, FileAccess.WRITE)
 	if file:
 		file.store_string(JSON.stringify(save_data))
@@ -67,25 +72,43 @@ func save_game_state():
 
 # 加载游戏状态
 func load_game_state():
-	if FileAccess.file_exists(SAVE_FILE_PATH):
-		var file = FileAccess.open(SAVE_FILE_PATH, FileAccess.READ)
-		if file:
-			var json_text = file.get_as_text()
-			file.close()
-			
-			var json = JSON.new()
-			var parse_result = json.parse(json_text)
-			if parse_result == OK:
-				var save_data = json.data
-				current_round = save_data.get("current_round", 1)
-				current_scene_type = save_data.get("current_scene_type", "workday")
-				
-				# 加载特权卡数据
-				if PrivilegeCardManager:
-					PrivilegeCardManager.load_cards_data(save_data)
-				
-				print("Time Manager: 游戏状态已加载 - 回合: ", current_round, ", 场景: ", current_scene_type)
-			else:
-				print("Time Manager: 存档文件解析失败，使用默认值")
-	else:
-		print("Time Manager: 未找到存档文件，使用默认值") 
+	if not FileAccess.file_exists(SAVE_FILE_PATH):
+		print("Time Manager: 存档文件不存在，使用默认设置")
+		return
+	
+	var file = FileAccess.open(SAVE_FILE_PATH, FileAccess.READ)
+	if not file:
+		print("Time Manager: 无法打开存档文件")
+		return
+	
+	var content = file.get_as_text()
+	file.close()
+	
+	var json = JSON.new()
+	var parse_result = json.parse(content)
+	if parse_result != OK:
+		print("Time Manager: 存档文件解析失败")
+		return
+	
+	var save_data = json.data
+	
+	# 加载基本状态
+	if save_data.has("current_round"):
+		current_round = save_data.current_round
+		round_changed.emit(current_round)
+	
+	if save_data.has("current_scene_type"):
+		current_scene_type = save_data.current_scene_type
+		scene_type_changed.emit(current_scene_type)
+	
+	# 加载特权卡数据
+	if PrivilegeCardManager and save_data.has("privilege_cards"):
+		PrivilegeCardManager.load_cards_data(save_data)
+	
+	# 加载已完成事件数据
+	var event_manager = get_node_or_null("/root/EventManager")
+	if event_manager and save_data.has("completed_events"):
+		event_manager.completed_events = save_data.completed_events
+		print("Time Manager: 已加载完成事件数据，数量: ", event_manager.completed_events.size())
+	
+	print("Time Manager: 游戏状态已加载 - 回合:", current_round, " 场景:", current_scene_type) 

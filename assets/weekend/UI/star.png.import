@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dnd1piose7682"
-path="res://.godot/imported/daily_undo.png-127afab6b1707c0fee0c7dd8a3f7ddba.ctex"
+uid="uid://bcrw33bsk3cvy"
+path="res://.godot/imported/star.png-b159f981df3c369df7f8b43571ea9a68.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/workday_new/ui/events/daily_undo.png"
-dest_files=["res://.godot/imported/daily_undo.png-127afab6b1707c0fee0c7dd8a3f7ddba.ctex"]
+source_file="res://assets/weekend/UI/star.png"
+dest_files=["res://.godot/imported/star.png-b159f981df3c369df7f8b43571ea9a68.ctex"]
 
 [params]
 

@@ -1,20 +1,6 @@
-[gd_scene load_steps=4 format=3 uid="uid://bs37bgo8oecj7"]
+[gd_scene load_steps=2 format=3 uid="uid://bs37bgo8oecj7"]
 
 [ext_resource type="Script" uid="uid://bw32xboegpbmn" path="res://scripts/ui/card_display_panel.gd" id="1_script"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_title"]
-content_margin_left = 0.0
-content_margin_top = 0.0
-content_margin_right = 0.0
-content_margin_bottom = 0.0
-bg_color = Color(0.314, 0.482, 0.467, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_subtitle"]
-content_margin_left = 0.0
-content_margin_top = 0.0
-content_margin_right = 0.0
-content_margin_bottom = 0.0
-bg_color = Color(0.337, 0.435, 0.533, 1)
 
 [node name="CardDisplayPanel" type="Control"]
 layout_mode = 3
@@ -36,34 +22,12 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.968627, 0.937255, 0.866667, 0.909804)
 
-[node name="HeaderContainer" type="VBoxContainer" parent="."]
-layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
-offset_right = -1306.0
-offset_bottom = 130.0
-grow_horizontal = 2
-
-[node name="HeaderTitle" type="Label" parent="HeaderContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 36
-theme_override_styles/normal = SubResource("StyleBoxFlat_title")
-text = "道具"
-horizontal_alignment = 1
-
-[node name="HeaderSubtitle" type="Label" parent="HeaderContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 48
-theme_override_styles/normal = SubResource("StyleBoxFlat_subtitle")
-text = "角色"
-horizontal_alignment = 1
-
 [node name="CardScrollContainer" type="ScrollContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 160.0
+offset_top = 72.0
 offset_right = -1308.0
 offset_bottom = -20.0
 grow_horizontal = 2
@@ -83,10 +47,11 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -1355.0
-offset_top = 10.0
-offset_right = -1315.0
-offset_bottom = 52.0
+offset_left = -1377.0
+offset_top = 9.0
+offset_right = -1309.0
+offset_bottom = 63.0
 grow_horizontal = 0
 theme_override_font_sizes/font_size = 24
-text = "X"
+text = "❌"
+flat = true

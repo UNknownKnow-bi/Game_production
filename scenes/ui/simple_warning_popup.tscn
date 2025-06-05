@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://bxm8k5n2vwqr8"]
 
-[ext_resource type="Script" uid="uid://bh7g8k3m4vxr9" path="res://scripts/ui/simple_warning_popup.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://bwjm253bm27x6" path="res://scripts/ui/simple_warning_popup.gd" id="1_script"]
 
 [node name="SimpleWarningPopup" type="Control"]
 layout_mode = 3
@@ -58,4 +58,4 @@ layout_mode = 2
 layout_mode = 2
 text = "我知道了"
 
-[connection signal="pressed" from="CenterContainer/PanelContainer/VBoxContainer/OKButton" to="." method="_on_ok_button_pressed"] 
+[connection signal="pressed" from="CenterContainer/PanelContainer/VBoxContainer/OKButton" to="." method="_on_ok_button_pressed"]

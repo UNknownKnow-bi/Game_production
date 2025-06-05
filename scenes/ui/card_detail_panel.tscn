@@ -1,6 +1,9 @@
-[gd_scene load_steps=2 format=3 uid="uid://mxu2f3stt10q"]
+[gd_scene load_steps=5 format=3 uid="uid://mxu2f3stt10q"]
 
 [ext_resource type="Script" uid="uid://md5wqy8bn731" path="res://scripts/ui/card_detail_panel.gd" id="1_4hdqr"]
+[ext_resource type="Texture2D" uid="uid://c58db2h0mvgm5" path="res://assets/ui/privilege_detail_page.png" id="2_background"]
+[ext_resource type="FontFile" uid="uid://cdja3eosvd0mn" path="res://assets/font/LEEEAFHEI-REGULAR.TTF" id="3_xydfs"]
+[ext_resource type="Texture2D" uid="uid://cxt1sed2lk8g0" path="res://assets/workday_new/ui/events/drawcard.png" id="4_drawcard"]
 
 [node name="CardDetailPanel" type="Control"]
 layout_mode = 3
@@ -11,14 +14,16 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_4hdqr")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="BackgroundImage" type="TextureRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.7)
+texture = ExtResource("2_background")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -28,64 +33,104 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="PanelContainer" type="PanelContainer" parent="CenterContainer"]
+[node name="MainContainer" type="Control" parent="CenterContainer"]
 custom_minimum_size = Vector2(1000, 700)
 layout_mode = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/PanelContainer"]
-layout_mode = 2
+[node name="VBoxContainer" type="Control" parent="CenterContainer/MainContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
-[node name="HeaderContainer" type="HBoxContainer" parent="CenterContainer/PanelContainer/VBoxContainer"]
+[node name="HeaderContainer" type="HBoxContainer" parent="CenterContainer/MainContainer/VBoxContainer"]
 layout_mode = 2
+offset_left = -415.0
+offset_top = -139.0
+offset_right = 1410.0
+offset_bottom = -21.0
 
-[node name="Title" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer/HeaderContainer"]
+[node name="Title" type="Label" parent="CenterContainer/MainContainer/VBoxContainer/HeaderContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "特权卡详情"
+theme_override_fonts/font = ExtResource("3_xydfs")
+theme_override_font_sizes/font_size = 55
+text = "特权卡"
 horizontal_alignment = 1
 
-[node name="CloseButton" type="Button" parent="CenterContainer/PanelContainer/VBoxContainer/HeaderContainer"]
+[node name="CloseButton" type="Button" parent="CenterContainer/MainContainer/VBoxContainer/HeaderContainer"]
 layout_mode = 2
-text = "关闭"
+text = "❌"
+flat = true
 
-[node name="HSeparator" type="HSeparator" parent="CenterContainer/PanelContainer/VBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="CenterContainer/MainContainer/VBoxContainer"]
 layout_mode = 2
+offset_left = -415.0
+offset_top = -21.0
+offset_right = 1410.0
+offset_bottom = -19.0
 
-[node name="ScrollContainer" type="ScrollContainer" parent="CenterContainer/PanelContainer/VBoxContainer"]
+[node name="ScrollContainer" type="ScrollContainer" parent="CenterContainer/MainContainer/VBoxContainer"]
 layout_mode = 2
+offset_left = -233.0
+offset_top = 30.0
+offset_right = 1384.0
+offset_bottom = 680.0
 size_flags_vertical = 3
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 3
 
-[node name="CardGrid" type="HBoxContainer" parent="CenterContainer/PanelContainer/VBoxContainer/ScrollContainer"]
+[node name="CardGrid" type="GridContainer" parent="CenterContainer/MainContainer/VBoxContainer/ScrollContainer"]
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_horizontal = 4
+size_flags_vertical = 0
+theme_override_constants/h_separation = 20
+theme_override_constants/v_separation = 20
+columns = 5
 
-[node name="NoCardsLabel" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer"]
+[node name="NoCardsLabel" type="Label" parent="CenterContainer/MainContainer/VBoxContainer"]
 layout_mode = 2
+offset_left = -415.0
+offset_top = -18.0
+offset_right = 1410.0
+offset_bottom = 699.0
 text = "暂无特权卡"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="BottomContainer" type="HBoxContainer" parent="CenterContainer/PanelContainer/VBoxContainer"]
+[node name="BottomContainer" type="HBoxContainer" parent="CenterContainer/MainContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
+offset_left = 1163.0
+offset_top = 700.0
+offset_right = 1367.0
+offset_bottom = 780.0
 
-[node name="Spacer" type="Control" parent="CenterContainer/PanelContainer/VBoxContainer/BottomContainer"]
+[node name="Spacer" type="Control" parent="CenterContainer/MainContainer/VBoxContainer/BottomContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="ActionContainer" type="VBoxContainer" parent="CenterContainer/PanelContainer/VBoxContainer/BottomContainer"]
+[node name="ActionContainer" type="VBoxContainer" parent="CenterContainer/MainContainer/VBoxContainer/BottomContainer"]
 custom_minimum_size = Vector2(200, 80)
 layout_mode = 2
 
-[node name="DrawButton" type="Button" parent="CenterContainer/PanelContainer/VBoxContainer/BottomContainer/ActionContainer"]
-custom_minimum_size = Vector2(150, 35)
+[node name="DrawButton" type="TextureButton" parent="CenterContainer/MainContainer/VBoxContainer/BottomContainer/ActionContainer"]
+custom_minimum_size = Vector2(150, 80)
 layout_mode = 2
-text = "抽取特权卡"
+texture_normal = ExtResource("4_drawcard")
+ignore_texture_size = true
+stretch_mode = 5
 
-[node name="CardCountLabel" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer/BottomContainer/ActionContainer"]
+[node name="CardCountLabel" type="Label" parent="CenterContainer/MainContainer/VBoxContainer/BottomContainer/ActionContainer"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("3_xydfs")
+theme_override_font_sizes/font_size = 30
 text = "0/28"
 horizontal_alignment = 1
+vertical_alignment = 1
 
-[connection signal="pressed" from="CenterContainer/PanelContainer/VBoxContainer/HeaderContainer/CloseButton" to="." method="_on_close_button_pressed"]
-[connection signal="pressed" from="CenterContainer/PanelContainer/VBoxContainer/BottomContainer/ActionContainer/DrawButton" to="." method="_on_draw_button_pressed"]
+[connection signal="pressed" from="CenterContainer/MainContainer/VBoxContainer/HeaderContainer/CloseButton" to="." method="_on_close_button_pressed"]
+[connection signal="pressed" from="CenterContainer/MainContainer/VBoxContainer/BottomContainer/ActionContainer/DrawButton" to="." method="_on_draw_button_pressed"]

@@ -15,7 +15,6 @@ var current_event_id = -1
 func _ready():
 	# 连接按钮信号
 	accept_button.pressed.connect(_on_accept_button_pressed)
-	reject_button.pressed.connect(_on_reject_button_pressed)
 	close_button.pressed.connect(_on_close_button_pressed)
 	# 默认隐藏
 	visible = false
@@ -43,19 +42,11 @@ func show_event(event_data: Dictionary):
 	else:
 		event_image.visible = false
 	
-	# 设置按钮文本
-	if event_data.has("accept_text"):
-		accept_button.text = event_data.accept_text
-	else:
-		accept_button.text = "接受"
-		
-	if event_data.has("reject_text"):
-		reject_button.text = event_data.reject_text
-	else:
-		reject_button.text = "拒绝"
+	# 设置确认按钮文本
+	accept_button.text = "确认"
 	
-	# 如果没有拒绝选项，隐藏拒绝按钮
-	reject_button.visible = event_data.get("has_reject_option", true)
+	# 强制隐藏拒绝按钮
+	reject_button.visible = false
 	
 	# 显示弹窗
 	visible = true
@@ -68,10 +59,6 @@ func hide_popup():
 # 按钮回调
 func _on_accept_button_pressed():
 	option_selected.emit(1, current_event_id)
-	hide_popup()
-
-func _on_reject_button_pressed():
-	option_selected.emit(0, current_event_id)
 	hide_popup()
 
 func _on_close_button_pressed():

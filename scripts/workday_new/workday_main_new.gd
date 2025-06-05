@@ -139,6 +139,12 @@ func _input(event):
 		print("========== 调试信息：当前元素位置 ==========")
 		debug_print_positions()
 		print("==========================================")
+	
+	# F9触发全面状态一致性验证（新增）
+	if event is InputEventKey and event.pressed and event.keycode == KEY_F9:
+		print("========== F9：全面状态一致性验证 ==========")
+		validate_all_cards_consistency()
+		print("==========================================")
 
 # 简单的全局缩放处理
 func _on_window_size_changed_simple():
@@ -261,7 +267,7 @@ func _on_beer_icon_mouse_entered():
 
 func _on_beer_icon_mouse_exited():
 	# 鼠标离开时直接恢复正常颜色（beer图标不再使用激活状态）
-	beer_icon.modulate = Color(1.0, 1.0, 1.0, 1.0)
+		beer_icon.modulate = Color(1.0, 1.0, 1.0, 1.0)
 
 # Cup图标事件处理
 func _on_cup_icon_pressed():
@@ -456,11 +462,108 @@ func _show_event_popup(event):
 func _on_event_option_selected(option_id: int, event_id: int):
 	print("选择了事件选项: ", option_id, " 事件ID: ", event_id)
 	
-	# 根据选项处理事件结果
+	# 获取EventManager
 	var event_manager = get_node_or_null("/root/EventManager")
-	if event_manager:
-		# 可以添加事件结果处理逻辑
-		pass
+	if not event_manager:
+		print("错误: 无法找到EventManager")
+		return
+	
+	# 标记事件为已完成
+	event_manager.mark_event_completed(event_id)
+	print("事件 ", event_id, " 已标记为完成")
+	
+	# 延迟验证事件完成后的状态
+	call_deferred("_verify_event_completion_status", event_id)
+	
+	# 可以根据需要添加事件结果处理逻辑
+	# 比如：属性变化、获得物品、触发后续事件等
+
+# 验证事件完成后的状态
+func _verify_event_completion_status(event_id: int):
+	print("WorkdayMain: 验证事件完成状态 - ID:", event_id)
+	
+	var event_manager = get_node_or_null("/root/EventManager")
+	if not event_manager:
+		print("⚠ WorkdayMain: EventManager未找到，无法验证状态")
+		return
+	
+	# 确认EventManager中事件确实被标记为完成
+	var is_completed = event_manager.is_event_completed(event_id)
+	if not is_completed:
+		print("⚠ WorkdayMain: 事件", event_id, "未被正确标记为完成")
+		return
+	
+	print("✓ WorkdayMain: 事件", event_id, "已正确标记为完成")
+	
+	# 添加延迟以确保所有信号处理完成
+	await get_tree().process_frame
+	
+	# 验证相关卡片的状态
+	_verify_cards_status_for_event(event_id)
+
+# 验证特定事件的卡片状态
+func _verify_cards_status_for_event(event_id: int):
+	print("WorkdayMain: 验证事件", event_id, "相关卡片状态")
+	
+	if not event_system:
+		print("⚠ WorkdayMain: event_system未找到")
+		return
+	
+	# 检查左侧面板（人物事件）
+	var left_panel = event_system.get_node_or_null("LeftPanel")
+	if left_panel:
+		_check_panel_cards_status(left_panel, event_id, "人物事件")
+	
+	# 检查中间面板（随机事件）
+	var middle_panel = event_system.get_node_or_null("MiddlePanel")
+	if middle_panel:
+		_check_panel_cards_status(middle_panel, event_id, "随机事件")
+	
+	# 检查右侧面板（日常事件）
+	var right_panel = event_system.get_node_or_null("RightPanel")
+	if right_panel:
+		_check_panel_cards_status(right_panel, event_id, "日常事件")
+
+# 检查面板中卡片的状态
+func _check_panel_cards_status(panel: EventPanel, event_id: int, panel_name: String):
+	if not panel or not panel.event_cards:
+		return
+	
+	for card in panel.event_cards:
+		if not card.has_method("get_game_event"):
+			continue
+		
+		var card_event = card.get_game_event()
+		if not card_event or card_event.event_id != event_id:
+			continue
+		
+		# 找到了对应的卡片，检查状态
+		print("WorkdayMain: 在", panel_name, "找到事件", event_id, "的卡片")
+		
+		# 使用统一状态接口检查状态
+		if card.has_method("get_completion_status") and card.has_method("get_status_description"):
+			var is_completed = card.get_completion_status()
+			var status_desc = card.get_status_description()
+			print("WorkdayMain: 卡片状态详情 - ", status_desc)
+			
+			if not is_completed:
+				print("⚠ WorkdayMain: 卡片状态不正确，应为completed，实际为未完成")
+				if card.has_method("set_completion_status"):
+					print("WorkdayMain: 使用统一接口强制修正卡片状态")
+					card.set_completion_status(true)
+				elif card.has_method("_force_status_update"):
+					print("WorkdayMain: 使用旧版接口强制修正卡片状态")
+					card.call_deferred("_force_status_update", "dealing")
+			else:
+				print("✓ WorkdayMain: 卡片状态正确")
+		else:
+			# 后备处理：使用旧版直接属性访问（仅用于兼容性）
+			print("⚠ WorkdayMain: 卡片未实现统一接口，使用后备方法")
+			if card.has_method("_verify_status_consistency"):
+				print("WorkdayMain: 触发卡片状态验证")
+				card.call_deferred("_verify_status_consistency")
+		
+		break
 
 # 处理事件弹窗关闭
 func _on_event_popup_closed():
@@ -655,3 +758,64 @@ func _on_warning_popup_closed():
 func _show_simple_warning(title: String = "提示", content: String = "必须抽取一张特权卡才能继续"):
 	if simple_warning_popup:
 		simple_warning_popup.show_warning(title, content)
+
+# 全面的状态一致性验证方法
+func validate_all_cards_consistency():
+	print("WorkdayMain: 开始全面卡片状态一致性验证")
+	
+	var event_manager = get_node_or_null("/root/EventManager")
+	if not event_manager or not event_system:
+		print("⚠ WorkdayMain: EventManager或EventSystem未找到，无法验证")
+		return
+	
+	var panels = [
+		{"panel": event_system.get_node_or_null("LeftPanel"), "name": "人物事件"},
+		{"panel": event_system.get_node_or_null("MiddlePanel"), "name": "随机事件"},
+		{"panel": event_system.get_node_or_null("RightPanel"), "name": "日常事件"}
+	]
+	
+	var total_cards = 0
+	var consistent_cards = 0
+	var fixed_cards = 0
+	
+	for panel_data in panels:
+		var panel = panel_data.panel
+		var panel_name = panel_data.name
+		
+		if not panel or not panel.event_cards:
+			continue
+		
+		print("WorkdayMain: 验证", panel_name, "面板，卡片数量:", panel.event_cards.size())
+		
+		for card in panel.event_cards:
+			total_cards += 1
+			
+			if not card.has_method("get_game_event") or not card.has_method("get_completion_status"):
+				print("⚠ WorkdayMain: 卡片缺少必要方法，跳过验证")
+				continue
+			
+			var card_event = card.get_game_event()
+			if not card_event:
+				print("⚠ WorkdayMain: 卡片无关联事件，跳过验证")
+				continue
+			
+			var manager_completed = event_manager.is_event_completed(card_event.event_id)
+			var card_completed = card.get_completion_status()
+			
+			if manager_completed == card_completed:
+				consistent_cards += 1
+				print("✓ WorkdayMain: 状态一致 - ", card.get_status_description())
+			else:
+				print("⚠ WorkdayMain: 状态不一致 - ", card.get_status_description())
+				print("  EventManager状态: ", manager_completed, " | 卡片状态: ", card_completed)
+				
+				if card.has_method("set_completion_status"):
+					card.set_completion_status(manager_completed)
+					fixed_cards += 1
+					print("✓ WorkdayMain: 状态已修正")
+	
+	print("WorkdayMain: 状态验证完成")
+	print("  总卡片数: ", total_cards)
+	print("  一致卡片数: ", consistent_cards)
+	print("  修正卡片数: ", fixed_cards)
+	print("  最终一致性: ", (consistent_cards + fixed_cards), "/", total_cards)

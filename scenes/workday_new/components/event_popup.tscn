@@ -118,6 +118,7 @@ size_flags_horizontal = 3
 text = "接受"
 
 [node name="RejectButton" type="Button" parent="PopupPanel/ButtonsContainer"]
+visible = false
 layout_mode = 2
 size_flags_horizontal = 3
 text = "拒绝"

@@ -76,3 +76,4 @@ func _on_round_changed(new_round: int):
 func _on_scene_type_changed(new_scene_type: String):
 	print("Time Display: 场景类型更新到 ", new_scene_type)
 	update_display() 
+ 

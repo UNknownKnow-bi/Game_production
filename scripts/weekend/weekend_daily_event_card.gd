@@ -1,10 +1,10 @@
-class_name DailyEventCard
+class_name WeekendDailyEventCard
 extends PanelContainer
 
 # 导出属性
 @export var event_title: String = ""
 @export var is_completed: bool = false
-@export var title_font_size: int = 70
+@export var title_font_size: int = 45
 
 # 样式属性
 var background_type: String = "default"
@@ -25,7 +25,7 @@ var game_event: GameEvent
 signal card_clicked
 
 func _ready():
-	print("=== DailyEventCard._ready 开始 ===")
+	print("=== WeekendDailyEventCard._ready 开始 ===")
 	print("卡片实例ID: ", get_instance_id())
 	
 	# 确保卡片能接收点击事件
@@ -81,10 +81,10 @@ func _ready():
 	print("正在连接EventManager信号...")
 	_connect_event_manager_signals()
 	
-	print("=== DailyEventCard._ready 完成 ===")
+	print("=== WeekendDailyEventCard._ready 完成 ===")
 
 func _on_gui_input(event):
-	print("=== DailyEventCard._on_gui_input 触发 ===")
+	print("=== WeekendDailyEventCard._on_gui_input 触发 ===")
 	print("卡片实例ID: ", get_instance_id())
 	print("事件类型: ", event.get_class())
 	
@@ -106,7 +106,7 @@ func _on_gui_input(event):
 	else:
 		print("非鼠标按钮事件，忽略")
 	
-	print("=== DailyEventCard._on_gui_input 完成 ===")
+	print("=== WeekendDailyEventCard._on_gui_input 完成 ===")
 
 # 设置事件标题
 func set_event_title(title: String):
@@ -151,7 +151,7 @@ func _apply_style():
 
 # 设置游戏事件
 func set_game_event(new_game_event: GameEvent):
-	print("=== DailyEventCard.set_game_event 调用 ===")
+	print("=== WeekendDailyEventCard.set_game_event 调用 ===")
 	print("卡片实例ID: ", get_instance_id())
 	print("传入GameEvent: ", new_game_event)
 	
@@ -174,47 +174,47 @@ func set_game_event(new_game_event: GameEvent):
 		if event_manager:
 			var initial_completed = event_manager.is_event_completed(new_game_event.event_id)
 			set_completion_status(initial_completed)
-			print("DailyEventCard: 初始化完成状态为: ", initial_completed)
+			print("WeekendDailyEventCard: 初始化完成状态为: ", initial_completed)
 		else:
 			# 如果EventManager未找到，默认为未完成
 			set_completion_status(false)
-			print("DailyEventCard: EventManager未找到，默认设为未完成")
+			print("WeekendDailyEventCard: EventManager未找到，默认设为未完成")
 	else:
 		set_completion_status(false)
 	
 	print("✓ GameEvent已设置")
-	print("=== DailyEventCard.set_game_event 完成 ===")
+	print("=== WeekendDailyEventCard.set_game_event 完成 ===")
 
 # 连接EventManager信号
 func _connect_event_manager_signals():
 	var event_manager = get_node_or_null("/root/EventManager")
 	if not event_manager:
-		print("⚠ DailyEventCard: EventManager未找到，无法连接信号")
+		print("⚠ WeekendDailyEventCard: EventManager未找到，无法连接信号")
 		return
 	
 	if not event_manager.event_completed.is_connected(_on_event_completed):
 		event_manager.event_completed.connect(_on_event_completed)
-		print("DailyEventCard: 已连接EventManager的event_completed信号")
+		print("WeekendDailyEventCard: 已连接EventManager的event_completed信号")
 
 # 处理事件完成信号
 func _on_event_completed(event_id: int):
-	print("DailyEventCard: 收到事件完成信号 - event_id:", event_id)
+	print("WeekendDailyEventCard: 收到事件完成信号 - event_id:", event_id)
 	
 	if not game_event:
-		print("DailyEventCard: 无game_event，忽略信号")
+		print("WeekendDailyEventCard: 无game_event，忽略信号")
 		return
 		
 	if game_event.event_id == event_id:
-		print("DailyEventCard: 信号匹配当前事件，强制更新状态")
-		print("DailyEventCard: 当前状态 - ", get_status_description())
+		print("WeekendDailyEventCard: 信号匹配当前事件，强制更新状态")
+		print("WeekendDailyEventCard: 当前状态 - ", get_status_description())
 		
 		# 强制设置为完成状态
 		set_completion_status(true)
 		
-		print("DailyEventCard: 更新后状态 - ", get_status_description())
-		print("DailyEventCard: 事件完成处理完毕 - ", event_id)
+		print("WeekendDailyEventCard: 更新后状态 - ", get_status_description())
+		print("WeekendDailyEventCard: 事件完成处理完毕 - ", event_id)
 	else:
-		print("DailyEventCard: 信号不匹配当前事件 (当前:", game_event.event_id, " 信号:", event_id, ")")
+		print("WeekendDailyEventCard: 信号不匹配当前事件 (当前:", game_event.event_id, " 信号:", event_id, ")")
 
 # 获取游戏事件
 func get_game_event() -> GameEvent:
@@ -222,7 +222,7 @@ func get_game_event() -> GameEvent:
 
 # 统一状态访问接口实现
 func get_completion_status() -> bool:
-	# DailyEventCard使用is_completed管理状态
+	# WeekendDailyEventCard使用is_completed管理状态
 	return is_completed
 
 func set_completion_status(completed: bool):
@@ -233,18 +233,17 @@ func get_status_description() -> String:
 	# 返回详细状态描述，用于调试
 	var event_id = game_event.event_id if game_event else -1
 	var event_name = game_event.event_name if game_event else "null"
-	return "DailyEventCard[" + str(event_id) + ":" + event_name + "] is_completed: " + str(is_completed) + " (completed: " + str(get_completion_status()) + ")"
+	return "WeekendDailyEventCard[" + str(event_id) + ":" + event_name + "] is_completed: " + str(is_completed) + " (completed: " + str(get_completion_status()) + ")"
 
 # 获取卡片类型
 func get_card_type() -> String:
-	return "daily"
+	return "weekend_daily"
 
 # 更新卡片内容
 func update_content():
 	if game_event:
 		set_event_title(game_event.event_name)
 		# 根据游戏事件状态设置完成状态
-		# 这里可以根据实际需求调整逻辑
 		set_completed(false)
 	
 	_apply_style() 

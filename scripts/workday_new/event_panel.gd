@@ -239,7 +239,7 @@ func add_event_card(event_data, card_type: String = "character"):
 		print("✗ 事件数据为null，终止添加")
 		print("=== EventPanel.add_event_card 失败 ===")
 		return null
-	
+		
 	print("✓ 事件数据验证通过")
 	
 	var card = null
@@ -256,7 +256,7 @@ func add_event_card(event_data, card_type: String = "character"):
 			print("✗ EventCardFactory.create_card返回null")
 			print("=== EventPanel.add_event_card 失败 ===")
 			return null
-		
+			
 		print("✓ EventCardFactory.create_card成功，卡片类型: ", card.get_class())
 		
 		# 初始化卡片内容

@@ -43,3 +43,9 @@ Thumbs.db
 # *.mp4
 # *.wav
 # *.mp3
+
+# 忽略Godot 4.4+ UID文件
+*.uid
+
+# 忽略备份文件
+*.backup

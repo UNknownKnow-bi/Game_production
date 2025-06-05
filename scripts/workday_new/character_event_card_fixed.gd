@@ -33,6 +33,7 @@ var _original_texture: Texture2D = null
 @onready var title_label = $CardContent/EventTitle
 @onready var name_label = $CardContent/EventPerson
 @onready var status_icon = $CardContent/StatusIcon
+@onready var round_info = $CardContent/RoundInfo
 
 # 资源引用
 var new_status_texture = preload("res://assets/workday_new/ui/events/new.png")
@@ -56,6 +57,8 @@ func _ready():
 		name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if status_icon:
 		status_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if round_info:
+		round_info.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if character_image:
 		character_image.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if has_node("CardContent/EventCharacterPortrait"):
@@ -79,6 +82,9 @@ func _ready():
 	
 	# 连接信号
 	gui_input.connect(_on_gui_input)
+	
+	# 连接EventManager信号
+	_connect_event_manager_signals()
 	
 	# 应用样式
 	_apply_style()
@@ -105,6 +111,8 @@ func _ready():
 				parent.move_child(name_label, -1)   # 移到最后（最上面）
 			if is_instance_valid(status_icon):
 				parent.move_child(status_icon, -1)  # 移到最后（最上面）
+			if is_instance_valid(round_info) and round_info.get_parent() == parent:
+				parent.move_child(round_info, -1)
 			
 			# 打印节点层级信息
 			print("节点层级顺序:")
@@ -127,12 +135,36 @@ func set_character_name(text: String):
 		name_label.text = text
 
 func set_event_status(status: String):
+	print("CharacterEventCardFixed: 设置事件状态 - 从 '", event_status, "' 到 '", status, "'")
+	
+	# 验证状态值
+	if status != "new" and status != "dealing":
+		print("⚠ CharacterEventCardFixed: 无效状态值 '", status, "'，默认为'new'")
+		status = "new"
+	
 	event_status = status
+	
 	if is_instance_valid(status_icon):
+		print("CharacterEventCardFixed: 更新StatusIcon纹理...")
+		var old_texture = status_icon.texture
+		
 		if status == "new":
 			status_icon.texture = new_status_texture
+			print("  设置为new状态纹理: ", new_status_texture)
 		else:
 			status_icon.texture = dealing_status_texture
+			print("  设置为dealing状态纹理: ", dealing_status_texture)
+		
+		var new_texture = status_icon.texture
+		print("  纹理更新结果: ", old_texture, " -> ", new_texture)
+		
+		# 强制重绘
+		if status_icon.has_method("queue_redraw"):
+			status_icon.queue_redraw()
+		
+		print("✓ CharacterEventCardFixed: StatusIcon纹理更新完成")
+	else:
+		print("⚠ CharacterEventCardFixed: status_icon无效，无法更新纹理")
 
 func set_character_texture(texture: Texture2D):
 	_original_texture = texture
@@ -159,6 +191,8 @@ func set_character_texture(texture: Texture2D):
 					parent.move_child(name_label, -1)
 				if is_instance_valid(status_icon) and status_icon.get_parent() == parent:
 					parent.move_child(status_icon, -1)
+				if is_instance_valid(round_info) and round_info.get_parent() == parent:
+					parent.move_child(round_info, -1)
 
 # 区域裁剪属性更新
 func set_region_enabled(enabled: bool):
@@ -214,6 +248,8 @@ func _apply_texture_region():
 			parent.move_child(name_label, -1)
 		if is_instance_valid(status_icon) and status_icon.get_parent() == parent:
 			parent.move_child(status_icon, -1)
+		if is_instance_valid(round_info) and round_info.get_parent() == parent:
+			parent.move_child(round_info, -1)
 
 # 样式属性更新
 func set_border_color(color: Color):
@@ -257,6 +293,10 @@ func _apply_content():
 	# 应用字体大小
 	set_title_font_size(title_font_size)
 	set_name_font_size(name_font_size)
+	
+	# 更新回合信息（如果游戏事件已设置）
+	if game_event:
+		_update_round_info()
 
 # 应用样式
 func _apply_style():
@@ -305,6 +345,245 @@ func get_card_type() -> String:
 func set_game_event(event: GameEvent) -> void:
 	game_event = event
 	print("CharacterEventCardFixed: 设置game_event - ", event.event_name if event else "null")
+	
+	# 连接EventManager信号（确保在设置事件时信号已连接）
+	_connect_event_manager_signals()
+	
+	# 检查并设置初始状态
+	if event:
+		var event_manager = get_node_or_null("/root/EventManager")
+		if event_manager:
+			var initial_completed = event_manager.is_event_completed(event.event_id)
+			if initial_completed:
+				set_event_status("dealing")
+			else:
+				set_event_status("new")
+			print("CharacterEventCardFixed: 初始化状态为: ", "dealing" if initial_completed else "new")
+			
+			# 延迟状态检查，确保状态正确性
+			call_deferred("_delayed_status_check")
+		else:
+			# 如果EventManager未找到，默认为new
+			set_event_status("new")
+			print("CharacterEventCardFixed: EventManager未找到，默认设为new状态")
+		
+		# 更新回合信息
+		_update_round_info()
+	else:
+		set_event_status("new")
 
 func get_game_event() -> GameEvent:
 	return game_event 
+
+# 连接EventManager信号
+func _connect_event_manager_signals():
+	var event_manager = get_node_or_null("/root/EventManager")
+	if not event_manager:
+		print("⚠ CharacterEventCardFixed: EventManager未找到，无法连接信号")
+		return
+	
+	if not event_manager.event_completed.is_connected(_on_event_completed):
+		event_manager.event_completed.connect(_on_event_completed)
+		print("CharacterEventCardFixed: 已连接EventManager的event_completed信号")
+
+# 处理事件完成信号
+func _on_event_completed(event_id: int):
+	print("CharacterEventCardFixed: 收到事件完成信号 - event_id:", event_id)
+	
+	if not game_event:
+		print("CharacterEventCardFixed: 无game_event，忽略信号")
+		return
+		
+	if game_event.event_id == event_id:
+		print("CharacterEventCardFixed: 信号匹配当前事件，强制更新状态")
+		
+		# 强制更新状态为dealing（已处理）
+		_force_status_update("dealing")
+		
+		# 更新回合信息显示
+		_update_round_info()
+		
+		# 验证状态一致性
+		call_deferred("_verify_status_consistency")
+		
+		print("CharacterEventCardFixed: 事件完成处理完毕 - ", event_id)
+	else:
+		print("CharacterEventCardFixed: 信号不匹配当前事件 (当前:", game_event.event_id, " 信号:", event_id, ")")
+
+# 更新回合信息显示
+func _update_round_info():
+	if not game_event or not round_info:
+		return
+	
+	var event_manager = get_node_or_null("/root/EventManager")
+	if not event_manager:
+		print("⚠ CharacterEventCardFixed: EventManager未找到，回合信息不更新")
+		return
+	
+	# 统一显示格式：持续：X回合
+	var duration_text = "持续：" + str(game_event.duration_rounds) + "回合"
+	round_info.text = duration_text
+	print("CharacterEventCardFixed: 回合信息显示:", duration_text)
+
+# 验证状态一致性的方法
+func _verify_status_consistency():
+	if not game_event:
+		print("⚠ CharacterEventCardFixed: 无game_event，无法验证状态")
+		return false
+	
+	var event_manager = get_node_or_null("/root/EventManager")
+	if not event_manager:
+		print("⚠ CharacterEventCardFixed: EventManager未找到，无法验证状态")
+		return false
+	
+	var manager_completed = event_manager.is_event_completed(game_event.event_id)
+	var card_status_is_dealing = (event_status == "dealing")
+	
+	print("CharacterEventCardFixed: 状态一致性检查")
+	print("  事件ID: ", game_event.event_id)
+	print("  事件名称: ", game_event.event_name)
+	print("  EventManager完成状态: ", manager_completed)
+	print("  卡片状态: ", event_status)
+	print("  状态一致性: ", manager_completed == card_status_is_dealing)
+	
+	if manager_completed != card_status_is_dealing:
+		print("⚠ CharacterEventCardFixed: 状态不一致，需要修正")
+		return false
+	
+	print("✓ CharacterEventCardFixed: 状态一致")
+	return true
+
+# 强制状态更新方法
+func _force_status_update(new_status: String):
+	print("CharacterEventCardFixed: 强制状态更新到 '", new_status, "'")
+	
+	# 直接更新状态，跳过常规验证
+	event_status = new_status
+	
+	if is_instance_valid(status_icon):
+		print("CharacterEventCardFixed: 强制更新StatusIcon纹理...")
+		
+		if new_status == "new":
+			status_icon.texture = new_status_texture
+		else:
+			status_icon.texture = dealing_status_texture
+		
+		# 强制刷新UI
+		if status_icon.has_method("queue_redraw"):
+			status_icon.queue_redraw()
+		
+		# 确保父容器也刷新
+		var parent = status_icon.get_parent()
+		while parent and parent != self:
+			if parent.has_method("queue_redraw"):
+				parent.queue_redraw()
+			parent = parent.get_parent()
+		
+		print("✓ CharacterEventCardFixed: 强制状态更新完成")
+	else:
+		print("⚠ CharacterEventCardFixed: status_icon无效，强制更新失败")
+
+# 验证并修正初始状态的方法
+func _verify_and_fix_initial_status():
+	print("CharacterEventCardFixed: 验证并修正初始状态...")
+	
+	if not _verify_status_consistency():
+		print("CharacterEventCardFixed: 检测到状态不一致，进行修正")
+		
+		var event_manager = get_node_or_null("/root/EventManager")
+		if event_manager and game_event:
+			var should_be_completed = event_manager.is_event_completed(game_event.event_id)
+			var correct_status = "dealing" if should_be_completed else "new"
+			
+			print("CharacterEventCardFixed: 修正状态到 '", correct_status, "'")
+			_force_status_update(correct_status)
+			
+			# 再次验证
+			call_deferred("_verify_status_consistency")
+	else:
+		print("✓ CharacterEventCardFixed: 初始状态正确")
+
+# 延迟状态检查方法
+func _delayed_status_check():
+	print("CharacterEventCardFixed: 执行延迟状态检查...")
+	
+	if not game_event:
+		print("CharacterEventCardFixed: 无game_event，跳过延迟检查")
+		return
+	
+	var event_manager = get_node_or_null("/root/EventManager")
+	if not event_manager:
+		print("CharacterEventCardFixed: EventManager未找到，跳过延迟检查")
+		return
+	
+	var current_completed = event_manager.is_event_completed(game_event.event_id)
+	var current_status_dealing = (event_status == "dealing")
+	
+	if current_completed != current_status_dealing:
+		print("CharacterEventCardFixed: 延迟检查发现状态不一致，进行修正")
+		var correct_status = "dealing" if current_completed else "new"
+		_force_status_update(correct_status)
+	else:
+		print("✓ CharacterEventCardFixed: 延迟检查确认状态正确")
+
+# 运行时状态监控报告方法
+func get_status_report() -> Dictionary:
+	var report = {
+		"card_instance_id": get_instance_id(),
+		"event_title": event_title,
+		"event_status": event_status,
+		"game_event_id": game_event.event_id if game_event else -1,
+		"game_event_name": game_event.event_name if game_event else "null",
+		"status_icon_valid": is_instance_valid(status_icon),
+		"status_icon_texture": str(status_icon.texture) if is_instance_valid(status_icon) else "null",
+		"manager_completed_status": "unknown"
+	}
+	
+	var event_manager = get_node_or_null("/root/EventManager")
+	if event_manager and game_event:
+		report.manager_completed_status = event_manager.is_event_completed(game_event.event_id)
+	
+	return report
+
+# 打印状态报告
+func print_status_report():
+	var report = get_status_report()
+	print("=== CharacterEventCard状态报告 ===")
+	for key in report:
+		print("  ", key, ": ", report[key])
+	print("=== 报告结束 ===")
+
+# 启用持续状态监控（可选，用于调试）
+func enable_status_monitoring(interval_seconds: float = 5.0):
+	print("CharacterEventCardFixed: 启用状态监控，间隔", interval_seconds, "秒")
+	
+	var timer = Timer.new()
+	timer.wait_time = interval_seconds
+	timer.timeout.connect(_on_monitoring_timer_timeout)
+	add_child(timer)
+	timer.start()
+
+# 监控定时器回调
+func _on_monitoring_timer_timeout():
+	print("CharacterEventCardFixed: 状态监控检查 - ", event_title)
+	if not _verify_status_consistency():
+		print("⚠ 监控检测到状态问题，执行修正")
+		_verify_and_fix_initial_status()
+
+# 统一状态访问接口实现
+func get_completion_status() -> bool:
+	# CharacterEventCard使用event_status管理状态
+	return event_status == "dealing"
+
+func set_completion_status(completed: bool):
+	# 使用现有的set_event_status方法
+	if completed:
+		set_event_status("dealing")
+	else:
+		set_event_status("new")
+
+func get_status_description() -> String:
+	# 返回详细状态描述，用于调试
+	var event_id = game_event.event_id if game_event else -1
+	var event_name = game_event.event_name if game_event else "null"
+	return "CharacterEventCard[" + str(event_id) + ":" + event_name + "] event_status: " + event_status + " (completed: " + str(get_completion_status()) + ")"

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bg2gge2xyy1vn"
-path="res://.godot/imported/daily_done.png-7bcd73a022faaa7488ddf223103433b3.ctex"
+uid="uid://bif2k7s3ddxy2"
+path="res://.godot/imported/play_area.png-bcbb21b7070b7e0065f016c5bd1bd2aa.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/workday_new/ui/events/daily_done.png"
-dest_files=["res://.godot/imported/daily_done.png-7bcd73a022faaa7488ddf223103433b3.ctex"]
+source_file="res://assets/weekend/UI/play_area.png"
+dest_files=["res://.godot/imported/play_area.png-bcbb21b7070b7e0065f016c5bd1bd2aa.ctex"]
 
 [params]
 

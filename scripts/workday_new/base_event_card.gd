@@ -127,4 +127,20 @@ func set_game_event(event: GameEvent):
 	game_event = event
 
 func get_game_event() -> GameEvent:
-	return game_event 
+	return game_event
+
+# 统一状态访问接口
+func get_completion_status() -> bool:
+	# 基础实现：根据event_status判断完成状态
+	return event_status == "dealing"
+
+func set_completion_status(completed: bool):
+	# 基础实现：设置event_status
+	if completed:
+		set_event_status("dealing")
+	else:
+		set_event_status("new")
+
+func get_status_description() -> String:
+	# 返回状态描述，用于调试
+	return "event_status: " + event_status + " (completed: " + str(get_completion_status()) + ")" 

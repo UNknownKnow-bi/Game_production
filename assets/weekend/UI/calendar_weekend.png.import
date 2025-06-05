@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cofxdvsi5xb3i"
-path="res://.godot/imported/pure_color.png-612d787a5ffe7bb1424aa584da19c77f.ctex"
+uid="uid://dg7ly4f5ibhny"
+path="res://.godot/imported/calendar_weekend.png-9c1cf925308b79b2db0876506dc17fcc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/workday_main_scene/ui/pure_color.png"
-dest_files=["res://.godot/imported/pure_color.png-612d787a5ffe7bb1424aa584da19c77f.ctex"]
+source_file="res://assets/weekend/UI/calendar_weekend.png"
+dest_files=["res://.godot/imported/calendar_weekend.png-9c1cf925308b79b2db0876506dc17fcc.ctex"]
 
 [params]
 

@@ -177,7 +177,7 @@ func _on_events_updated():
 		print("错误: 未找到EventManager")
 		return
 	
-	print("事件已更新，正在刷新面板显示...")
+	print("事件已更新，检查是否需要刷新面板显示...")
 	
 	# 获取和显示各类事件数量以便调试
 	var character_events = event_manager.get_active_events("character")
@@ -189,21 +189,111 @@ func _on_events_updated():
 	print("  随机事件数量: ", random_events.size())
 	print("  日常事件数量: ", daily_events.size())
 	
+	# 智能更新判断：检查是否真的需要重建面板
+	var need_rebuild = _check_if_rebuild_needed(character_events, random_events, daily_events)
+	
+	if need_rebuild:
+		print("EventSystem: 检测到需要重建面板，执行完整更新")
+		# 更新人物事件显示
+		update_event_panel("character", left_panel)
+		
+		# 更新随机事件显示
+		update_event_panel("random", middle_panel)
+		
+		# 更新日常事件显示
+		update_event_panel("daily", right_panel)
+	else:
+		print("EventSystem: 无需重建面板，执行轻量级状态同步")
+		_sync_existing_cards_status()
+	
 	# 如果调试模式开启，显示所有事件数量
 	if event_manager.debug_mode:
 		var debug_info = event_manager.get_debug_info()
 		print("EventManager调试信息: ", debug_info)
 	
-	# 更新人物事件显示
-	update_event_panel("character", left_panel)
-	
-	# 更新随机事件显示
-	update_event_panel("random", middle_panel)
-	
-	# 更新日常事件显示
-	update_event_panel("daily", right_panel)
-	
 	print("事件面板更新完成")
+
+# 检查是否需要重建面板的方法
+func _check_if_rebuild_needed(character_events: Array, random_events: Array, daily_events: Array) -> bool:
+	# 检查左侧面板（人物事件）
+	if not left_panel or left_panel.event_cards.size() != character_events.size():
+		print("EventSystem: 人物事件数量变化，需要重建")
+		return true
+	
+	# 检查中间面板（随机事件）
+	if not middle_panel or middle_panel.event_cards.size() != random_events.size():
+		print("EventSystem: 随机事件数量变化，需要重建")
+		return true
+	
+	# 检查右侧面板（日常事件）
+	if not right_panel or right_panel.event_cards.size() != daily_events.size():
+		print("EventSystem: 日常事件数量变化，需要重建")
+		return true
+	
+	# 检查事件ID是否匹配
+	if not _check_events_match(left_panel.event_cards, character_events):
+		print("EventSystem: 人物事件ID不匹配，需要重建")
+		return true
+	
+	if not _check_events_match(middle_panel.event_cards, random_events):
+		print("EventSystem: 随机事件ID不匹配，需要重建")
+		return true
+	
+	if not _check_events_match(right_panel.event_cards, daily_events):
+		print("EventSystem: 日常事件ID不匹配，需要重建")
+		return true
+	
+	print("EventSystem: 事件列表未变化，无需重建")
+	return false
+
+# 检查卡片和事件是否匹配
+func _check_events_match(cards: Array, events: Array) -> bool:
+	if cards.size() != events.size():
+		return false
+	
+	for i in range(cards.size()):
+		var card = cards[i]
+		var event = events[i]
+		
+		if not card.has_method("get_game_event"):
+			continue
+		
+		var card_event = card.get_game_event()
+		if not card_event or card_event.event_id != event.event_id:
+			return false
+	
+	return true
+
+# 同步现有卡片状态的方法
+func _sync_existing_cards_status():
+	print("EventSystem: 同步现有卡片状态...")
+	
+	# 同步人物事件卡片状态
+	if left_panel:
+		_sync_panel_cards_status(left_panel, "character")
+	
+	# 同步随机事件卡片状态
+	if middle_panel:
+		_sync_panel_cards_status(middle_panel, "random")
+	
+	# 同步日常事件卡片状态
+	if right_panel:
+		_sync_panel_cards_status(right_panel, "daily")
+	
+	print("EventSystem: 卡片状态同步完成")
+
+# 同步单个面板卡片状态
+func _sync_panel_cards_status(panel: EventPanel, category: String):
+	if not panel:
+		return
+	
+	print("EventSystem: 同步", category, "面板卡片状态，卡片数量:", panel.event_cards.size())
+	
+	for card in panel.event_cards:
+		if card.has_method("_verify_and_fix_initial_status"):
+			card.call_deferred("_verify_and_fix_initial_status")
+		elif card.has_method("_verify_status_consistency"):
+			card.call_deferred("_verify_status_consistency")
 
 # 更新特定类别的事件面板
 func update_event_panel(category: String, panel: EventPanel):

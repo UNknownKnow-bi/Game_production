@@ -23,7 +23,7 @@ offset_bottom = 283.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_ppt5y")
 script = ExtResource("1_script")
 region_height = 0.33
-background_color = Color(0.95, 0.95, 0.95, 1)
+background_color = Color(1, 0.945098, 0.854902, 1)
 
 [node name="CardContent" type="Control" parent="."]
 layout_mode = 2
@@ -37,9 +37,9 @@ offset_bottom = 278.0
 
 [node name="EventTitle" type="Label" parent="CardContent"]
 layout_mode = 0
-offset_left = 4.0
+offset_left = 9.0
 offset_top = 17.0
-offset_right = 382.0
+offset_right = 387.0
 offset_bottom = 87.0
 theme_override_colors/font_color = Color(0.152941, 0.180392, 0.231373, 1)
 theme_override_fonts/font = ExtResource("2_ppt5y")
@@ -66,10 +66,23 @@ max_lines_visible = 1
 [node name="StatusIcon" type="TextureRect" parent="CardContent"]
 custom_minimum_size = Vector2(60, 28)
 layout_mode = 0
-offset_left = -12.0
-offset_top = 186.0
-offset_right = 162.0
-offset_bottom = 258.0
+offset_left = -10.0
+offset_top = 190.0
+offset_right = 164.0
+offset_bottom = 262.0
 texture = ExtResource("2_ejibc")
 expand_mode = 1
 stretch_mode = 5
+
+[node name="RoundInfo" type="Label" parent="CardContent"]
+layout_mode = 0
+offset_left = 5.0
+offset_top = 150.0
+offset_right = 177.0
+offset_bottom = 180.0
+theme_override_colors/font_color = Color(0.2, 0.2, 0.2, 1)
+theme_override_fonts/font = ExtResource("2_ppt5y")
+theme_override_font_sizes/font_size = 30
+text = "持续回合: 5"
+horizontal_alignment = 1
+vertical_alignment = 1

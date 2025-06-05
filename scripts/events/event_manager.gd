@@ -16,6 +16,9 @@ var active_events = {
 	"ending": []
 }
 
+# 已完成事件记录
+var completed_events: Dictionary = {}  # event_id -> completion_data
+
 # 当前游戏回合
 var current_round = 1
 
@@ -27,6 +30,7 @@ var detailed_debug_mode: bool = false
 
 # 游戏状态信号
 signal events_updated
+signal event_completed(event_id: int)
 
 # 数据文件路径
 const EVENTS_DATA_PATH = "res://data/events/event_table.tsv"
@@ -36,16 +40,59 @@ var event_text_data = {}  # 存储事件ID到文本数据的映射
 const EVENT_TEXT_DATA_PATH = "res://data/events/event_text_table.tsv"
 
 func _ready():
+	# 连接TimeManager的round_changed信号
+	if TimeManager:
+		TimeManager.round_changed.connect(on_round_changed)
+		print("EventManager: 已连接TimeManager.round_changed信号")
+	else:
+		print("EventManager: 警告 - TimeManager未找到，无法同步回合")
+	
 	# 启用详细调试模式进行问题诊断
 	detailed_debug_mode = true
-	# 启用调试模式以跳过事件限制检查
-	debug_mode = true
-	print("EventManager: 启用详细调试模式和调试模式")
+	# 关闭调试模式以启用正确的事件限制检查
+	debug_mode = false
+	print("EventManager: 启用详细调试模式，关闭debug_mode以正确筛选事件")
 	
 	# 诊断文件访问状态
 	diagnose_file_access(EVENTS_DATA_PATH)
 	
 	load_events_from_tsv(EVENTS_DATA_PATH)
+
+# TimeManager回合变更回调
+func on_round_changed(new_round: int):
+	current_round = new_round
+	print("EventManager: 回合同步更新 - 当前回合: ", current_round)
+
+# 解析有效回合，支持逗号分隔格式
+func parse_valid_rounds(rounds_str: String) -> Array[int]:
+	var result: Array[int] = []
+	
+	if rounds_str.is_empty():
+		return result
+	
+	# 处理范围格式 "1-999" -> 转换为数字999 (表示持续时间)
+	if "-" in rounds_str:
+		var range_parts = rounds_str.split("-")
+		if range_parts.size() == 2:
+			var end_round = range_parts[1].strip_edges().to_int()
+			result.append(end_round)
+			if detailed_debug_mode:
+				print("解析范围格式: ", rounds_str, " -> [", end_round, "] (作为持续时间)")
+		return result
+	
+	# 处理逗号分隔格式
+	var parts = rounds_str.split(",")
+	for part in parts:
+		var clean_part = part.strip_edges()
+		if not clean_part.is_empty():
+			var round_num = clean_part.to_int()
+			if round_num > 0:
+				result.append(round_num)
+	
+	if detailed_debug_mode:
+		print("解析逗号分隔: ", rounds_str, " -> ", result)
+	
+	return result
 
 # 诊断文件访问状态
 func diagnose_file_access(file_path: String):
@@ -354,11 +401,9 @@ func create_event_with_error_handling(columns: Array, line_number: int) -> GameE
 	# 解析有效回合
 	var valid_rounds_str = columns[5]
 	if not valid_rounds_str.is_empty():
-		for round_str in valid_rounds_str.split(","):
-			var round_num = round_str.strip_edges().to_int()
-			event.valid_rounds.append(round_num)
-			if detailed_debug_mode:
-				print("添加有效回合: ", round_num)
+		event.valid_rounds = parse_valid_rounds(valid_rounds_str)
+		if detailed_debug_mode:
+			print("解析valid_rounds: '", valid_rounds_str, "' -> ", event.valid_rounds)
 	
 	if not set_event_property_safe(event, "duration_rounds", columns[6], "int", line_number):
 		return null
@@ -392,7 +437,38 @@ func create_event_with_error_handling(columns: Array, line_number: int) -> GameE
 	if detailed_debug_mode:
 		print("✓ 事件对象创建成功: ", event.event_name)
 	
+	# 验证和修复数据完整性
+	validate_and_fix_event_data(event)
+	
 	return event
+
+# 验证和修复事件数据完整性
+func validate_and_fix_event_data(event: GameEvent):
+	var fixed_issues = []
+	
+	# 检查duration_rounds
+	if event.duration_rounds <= 0 or event.duration_rounds > 999:
+		print("⚠ 修复异常duration_rounds: ", event.duration_rounds, " -> 1 (事件: ", event.event_name, ")")
+		event.duration_rounds = 1
+		fixed_issues.append("duration_rounds")
+	
+	# 检查valid_rounds
+	if event.valid_rounds.is_empty():
+		print("⚠ 事件 ", event.event_name, " 的valid_rounds为空，将在所有回合有效")
+	
+	# 检查其他数值字段
+	if event.max_occurrences < 0:
+		print("⚠ 修复异常max_occurrences: ", event.max_occurrences, " -> 1 (事件: ", event.event_name, ")")
+		event.max_occurrences = 1
+		fixed_issues.append("max_occurrences")
+	
+	if event.cooldown < 0:
+		print("⚠ 修复异常cooldown: ", event.cooldown, " -> 0 (事件: ", event.event_name, ")")
+		event.cooldown = 0
+		fixed_issues.append("cooldown")
+	
+	if fixed_issues.size() > 0:
+		print("EventManager: 事件 ", event.event_name, " 修复了字段: ", fixed_issues)
 
 # 安全设置事件属性
 func set_event_property_safe(event: GameEvent, property_name: String, value: String, type: String, line_number: int) -> bool:
@@ -402,9 +478,18 @@ func set_event_property_safe(event: GameEvent, property_name: String, value: Str
 	match type:
 		"int":
 			if value.is_empty():
-				event.set(property_name, 0)
+				# 对duration_rounds字段使用默认值1，其他字段使用0
+				var default_value = 1 if property_name == "duration_rounds" else 0
+				event.set(property_name, default_value)
+				if detailed_debug_mode:
+					print("✓ 空值处理: ", property_name, " -> ", default_value)
 			else:
 				var int_value = value.to_int()
+				# 验证duration_rounds的合理性
+				if property_name == "duration_rounds":
+					if int_value <= 0 or int_value > 999:
+						print("⚠ 异常duration_rounds值: ", int_value, " 重置为1")
+						int_value = 1
 				event.set(property_name, int_value)
 				if detailed_debug_mode:
 					print("✓ 整数转换: ", value, " -> ", int_value)
@@ -501,6 +586,39 @@ func get_events_by_category(category: String) -> Array:
 	
 	return category_events
 
+# 获取周末事件（基于day_type筛选）
+func get_weekend_events() -> Array[GameEvent]:
+	print("=== EventManager.get_weekend_events 开始 ===")
+	
+	var weekend_events: Array[GameEvent] = []
+	
+	# 从所有类别中筛选周末事件
+	for category in events:
+		for event_id in events[category]:
+			var event = events[category][event_id]
+			if _is_weekend_event(event):
+				weekend_events.append(event)
+				print("找到周末事件: ", event.event_name, " (", event.event_type, ") - ID:", event.event_id)
+				print("  day_type: ", _get_event_day_type(event))
+				print("  character_name: '", event.character_name, "' (长度:", event.character_name.length(), ")")
+	
+	print("总共筛选到", weekend_events.size(), "个周末事件")
+	print("=== EventManager.get_weekend_events 完成 ===")
+	
+	return weekend_events
+
+# 检查事件是否为周末事件
+func _is_weekend_event(event: GameEvent) -> bool:
+	if event.prerequisite_conditions.has("day_type"):
+		return event.prerequisite_conditions["day_type"] == "weekend"
+	return false
+
+# 获取事件的day_type字段
+func _get_event_day_type(event: GameEvent) -> String:
+	if event.prerequisite_conditions.has("day_type"):
+		return event.prerequisite_conditions["day_type"]
+	return "未设置"
+
 # 检查事件是否可用
 func check_event_availability(event: GameEvent) -> bool:
 	# 调试模式下跳过所有限制
@@ -509,7 +627,7 @@ func check_event_availability(event: GameEvent) -> bool:
 		return true
 	
 	# 检查回合有效性
-	if not event.is_valid_in_round(current_round):
+	if not event.is_valid_in_round(current_round, self):
 		print("事件过滤: ", event.event_name, " - 回合无效 (当前:", current_round, ", 有效:", event.valid_rounds, ")")
 		return false
 	
@@ -538,9 +656,13 @@ func check_prerequisites(event: GameEvent) -> bool:
 	# 检查日期类型
 	if prereq.has("day_type"):
 		var required_day_type = prereq["day_type"]
-		print("前置条件检查: ", event.event_name, " - 需要日期类型: ", required_day_type, " (当前未实现日期类型检查)")
-		# 暂时跳过日期类型检查
-		# return false
+		var current_scene_type = TimeManager.get_current_scene_type()
+		
+		if required_day_type != current_scene_type:
+			print("前置条件失败: ", event.event_name, " - 需要场景类型: ", required_day_type, ", 当前场景类型: ", current_scene_type)
+			return false
+		
+		print("前置条件通过: ", event.event_name, " - 场景类型匹配: ", required_day_type)
 	
 	# 检查必需属性
 	if prereq.has("required_attributes"):
@@ -588,6 +710,39 @@ func set_debug_mode(enabled: bool):
 	
 	# 重新更新可用事件
 	update_available_events()
+
+# 标记事件为已完成
+func mark_event_completed(event_id: int):
+	var completion_data = {
+		"completed_round": current_round,
+		"completion_time": Time.get_unix_time_from_system()
+	}
+	completed_events[event_id] = completion_data
+	
+	print("EventManager: 标记事件完成 - ID:", event_id, " 完成回合:", current_round)
+	print("EventManager: 发射event_completed信号...")
+	event_completed.emit(event_id)
+	print("EventManager: event_completed信号已发射")
+	
+	# 延迟UI刷新到下一帧，确保所有信号处理完成
+	print("EventManager: 延迟UI刷新到下一帧...")
+	call_deferred("_deferred_ui_update")
+
+# 延迟的UI更新方法
+func _deferred_ui_update():
+	print("EventManager: 执行延迟的UI更新...")
+	update_available_events()
+	print("EventManager: UI更新完成")
+
+# 检查事件是否已完成
+func is_event_completed(event_id: int) -> bool:
+	return completed_events.has(event_id)
+
+# 获取事件完成数据
+func get_event_completion_data(event_id: int) -> Dictionary:
+	if completed_events.has(event_id):
+		return completed_events[event_id]
+	return {}
 
 # 获取调试信息
 func get_debug_info() -> Dictionary:
