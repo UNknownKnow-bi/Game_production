@@ -868,58 +868,92 @@ func load_event_text_data():
 		printerr("✗ 无法打开事件文本数据文件: ", EVENT_TEXT_DATA_PATH)
 		return
 	
-	var content = file.get_as_text()
-	file.close()
+	# 使用逐行读取方式解析TSV文件
+	print("开始逐行读取TSV数据...")
 	
-	if content.is_empty():
+	# 读取表头行
+	var header_line = file.get_line()
+	if header_line.is_empty():
 		print("⚠ 事件文本数据文件为空")
+		file.close()
 		return
 	
-	var lines = content.split("\n")
-	if lines.size() < 2:
-		print("⚠ 事件文本数据文件格式不正确，至少需要表头和一行数据")
-		return
-	
-	# 解析表头
-	var header = lines[0].split("\t")
+	var header = header_line.split("\t")
 	print("文本数据表头: ", header)
 	
-	# 验证表头格式
-	var expected_headers = ["event_id", "pre_check_text", "card_display_text", "remarks"]
+	# 验证表头格式 - 保持7列格式验证
+	var expected_headers = ["event_id", "branch_id", "pre_check_text", "success_text", "failure_text", "card_text_success", "card_text_failure"]
 	for i in range(expected_headers.size()):
 		if i >= header.size() or header[i] != expected_headers[i]:
 			printerr("✗ 文本数据表头格式错误，期望: ", expected_headers)
+			printerr("✗ 实际表头: ", header)
+			file.close()
 			return
 	
-	# 解析数据行
+	print("✓ 表头验证通过")
+	
+	# 逐行读取数据
 	var loaded_count = 0
-	for i in range(1, lines.size()):
-		var line = lines[i].strip_edges()
+	var line_number = 1  # 从第2行开始（第1行是表头）
+	
+	while not file.eof_reached():
+		line_number += 1
+		var line = file.get_line()
+		
+		# 跳过空行
 		if line.is_empty():
 			continue
 		
+		# 分割字段
 		var columns = line.split("\t")
-		if columns.size() < 4:
-			print("⚠ 第", i+1, "行数据不完整，跳过")
+		if columns.size() < 7:
+			print("⚠ 第", line_number, "行数据不完整，跳过 - 列数:", columns.size(), "/7")
 			continue
 		
-		var event_id = columns[0].to_int()
-		var pre_check_text = columns[1]
-		var card_display_text = columns[2]
-		var remarks = columns[3]
+		# 验证event_id
+		var event_id_str = columns[0].strip_edges()
+		if event_id_str.is_empty() or not event_id_str.is_valid_int():
+			print("⚠ 第", line_number, "行event_id无效: '", event_id_str, "'，跳过")
+			continue
 		
-		# 存储文本数据
+		var event_id = event_id_str.to_int()
+		var branch_id = columns[1].strip_edges().to_int()
+		var pre_check_text = columns[2].strip_edges()
+		var success_text = columns[3].strip_edges()
+		var failure_text = columns[4].strip_edges()
+		var card_text_success = columns[5].strip_edges()
+		var card_text_failure = columns[6].strip_edges()
+		
+		# 存储文本数据 - 保持相同的数据结构
 		event_text_data[event_id] = {
+			"branch_id": branch_id,
 			"pre_check_text": pre_check_text,
-			"card_display_text": card_display_text,
-			"remarks": remarks
+			"success_text": success_text,
+			"failure_text": failure_text,
+			"card_text_success": card_text_success,
+			"card_text_failure": card_text_failure,
+			# 保持向后兼容
+			"card_display_text": card_text_success if not card_text_success.is_empty() else ("分支" + str(branch_id)),
+			"remarks": "branch_" + str(branch_id)
 		}
 		
 		loaded_count += 1
 		if detailed_debug_mode:
-			print("✓ 加载事件文本 - ID:", event_id, " 预检文本长度:", pre_check_text.length())
+			print("✓ 加载事件文本 - ID:", event_id, " Branch:", branch_id, " 预检文本长度:", pre_check_text.length())
+			if event_id == 1001:  # 特别关注事件1001
+				print("🎯 [事件1001] 文本数据详情:")
+				print("  pre_check_text前100字符: '", pre_check_text.substr(0, 100), "'")
 	
+	file.close()
 	print("✓ 事件文本数据加载完成，共加载 ", loaded_count, " 条记录")
+	
+	# 验证关键事件是否加载成功
+	if event_text_data.has(1001):
+		print("✓ 确认事件ID 1001的文本数据已加载")
+		var text_1001 = event_text_data[1001]
+		print("  pre_check_text长度: ", text_1001.pre_check_text.length())
+	else:
+		print("⚠ 事件ID 1001的文本数据未找到")
 	
 	# 将文本数据应用到已加载的事件对象
 	apply_text_data_to_events()
@@ -928,18 +962,98 @@ func load_event_text_data():
 func apply_text_data_to_events():
 	print("=== 应用文本数据到事件对象 ===")
 	
-	var applied_count = 0
+	# 添加调试信息：显示event_text_data字典状态
+	print("📊 event_text_data字典状态:")
+	print("  总记录数: ", event_text_data.size())
+	if event_text_data.has(1001):
+		print("  ✓ 包含事件ID 1001的文本数据")
+		var text_1001 = event_text_data[1001]
+		print("    branch_id: ", text_1001.branch_id)
+		print("    pre_check_text长度: ", text_1001.pre_check_text.length())
+		print("    pre_check_text前50字符: ", text_1001.pre_check_text.substr(0, 50))
+	else:
+		print("  ✗ 不包含事件ID 1001的文本数据")
+	
+	# 添加调试信息：显示events字典结构
+	print("📊 events字典结构:")
 	for category in events:
+		print("  ", category, "类别: ", events[category].size(), "个事件")
+		if events[category].has(1001):
+			print("    ✓ 包含事件ID 1001")
+			var event_1001 = events[category][1001]
+			print("      事件名称: ", event_1001.event_name)
+			print("      事件类型: ", event_1001.event_type)
+			print("      current pre_check_text长度: ", event_1001.pre_check_text.length())
+		
+	var applied_count = 0
+	var total_checked = 0
+	
+	for category in events:
+		print("🔍 处理", category, "类别，共", events[category].size(), "个事件")
 		for event_id in events[category]:
+			total_checked += 1
 			var event = events[category][event_id]
+			
+			# 特别针对事件ID 1001的详细日志
+			if event_id == 1001:
+				print("🎯 [专项调试] 处理事件ID 1001:")
+				print("  事件对象: ", event)
+				print("  事件名称: ", event.event_name)
+				print("  当前pre_check_text: '", event.pre_check_text, "'")
+				print("  当前pre_check_text长度: ", event.pre_check_text.length())
+				print("  检查event_text_data是否有1001: ", event_text_data.has(1001))
+			
 			if event_text_data.has(event.event_id):
 				var text_data = event_text_data[event.event_id]
-				event.set_text_data(text_data.pre_check_text, text_data.card_display_text)
+				
+				# 特别针对事件ID 1001的详细日志
+				if event_id == 1001:
+					print("  📝 找到文本数据，准备应用:")
+					print("    text_data.pre_check_text: '", text_data.pre_check_text.substr(0, 100), "...'")
+					print("    text_data.pre_check_text长度: ", text_data.pre_check_text.length())
+					print("    text_data.card_display_text: '", text_data.card_display_text, "'")
+					print("  🔧 调用set_text_data方法...")
+				
+				# 更新为新的数据结构
+				event.set_text_data(
+					text_data.pre_check_text, 
+					text_data.card_display_text,
+					text_data.success_text,
+					text_data.failure_text,
+					text_data.card_text_success,
+					text_data.card_text_failure
+				)
+				
+				# 特别针对事件ID 1001的应用后验证
+				if event_id == 1001:
+					print("  ✅ set_text_data调用完成，验证结果:")
+					print("    应用后pre_check_text: '", event.pre_check_text.substr(0, 100), "...'")
+					print("    应用后pre_check_text长度: ", event.pre_check_text.length())
+					print("    应用成功: ", not event.pre_check_text.is_empty())
+				
 				applied_count += 1
-				if detailed_debug_mode:
-					print("✓ 应用文本数据到事件 ID:", event.event_id)
+				if detailed_debug_mode and event_id != 1001:  # 避免重复日志
+					print("✓ 应用文本数据到事件 ID:", event.event_id, " Branch:", text_data.branch_id)
+			else:
+				# 特别针对事件ID 1001的缺失警告
+				if event_id == 1001:
+					print("  ❌ [错误] 未找到事件ID 1001的文本数据！")
+				elif detailed_debug_mode:
+					print("⚠ 事件ID", event.event_id, "没有对应的文本数据")
 	
-	print("✓ 文本数据应用完成，共应用 ", applied_count, " 个事件")
+	print("✓ 文本数据应用完成")
+	print("  总检查事件: ", total_checked, "个")
+	print("  成功应用: ", applied_count, "个")
+	print("  应用比例: ", float(applied_count)/float(total_checked)*100.0 if total_checked > 0 else 0.0, "%")
+	
+	# 最终验证事件ID 1001的状态
+	if events.has("character") and events["character"].has(1001):
+		var final_event = events["character"][1001]
+		print("🏁 [最终验证] 事件ID 1001的文本数据状态:")
+		print("  pre_check_text长度: ", final_event.pre_check_text.length())
+		print("  pre_check_text是否为空: ", final_event.pre_check_text.is_empty())
+		print("  get_pre_check_text()返回长度: ", final_event.get_pre_check_text().length())
+		print("  get_pre_check_text()前100字符: ", final_event.get_pre_check_text().substr(0, 100))
 
 # 获取事件的预检文本
 func get_event_pre_check_text(event_id: int) -> String:
@@ -951,4 +1065,28 @@ func get_event_pre_check_text(event_id: int) -> String:
 func get_event_card_display_text(event_id: int) -> String:
 	if event_text_data.has(event_id):
 		return event_text_data[event_id].card_display_text
+	return ""
+
+# 获取事件的成功文本
+func get_event_success_text(event_id: int) -> String:
+	if event_text_data.has(event_id):
+		return event_text_data[event_id].success_text
+	return ""
+
+# 获取事件的失败文本
+func get_event_failure_text(event_id: int) -> String:
+	if event_text_data.has(event_id):
+		return event_text_data[event_id].failure_text
+	return ""
+
+# 获取事件的成功卡片文本
+func get_event_card_text_success(event_id: int) -> String:
+	if event_text_data.has(event_id):
+		return event_text_data[event_id].card_text_success
+	return ""
+
+# 获取事件的失败卡片文本
+func get_event_card_text_failure(event_id: int) -> String:
+	if event_text_data.has(event_id):
+		return event_text_data[event_id].card_text_failure
 	return "" 

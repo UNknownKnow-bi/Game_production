@@ -7,6 +7,8 @@ extends Control
 const WeekendPlayerManager = preload("res://scripts/weekend/weekend_player_manager.gd")
 # 预加载CardDisplayPanel场景
 const CardDisplayPanelScene = preload("res://scenes/ui/card_display_panel.tscn")
+# 预加载ItemCardDisplayPanel场景
+const ItemCardDisplayPanelScene = preload("res://scenes/ui/item_card_display_panel.tscn")
 
 # 特权卡系统组件引用
 @onready var privilege_card_display = $UILayer/PrivilegeCardDisplay
@@ -34,6 +36,8 @@ var player_manager: WeekendPlayerManager
 
 # CardDisplayPanel状态变量
 var card_display_panel: Control = null
+# ItemCardDisplayPanel状态变量
+var item_card_display_panel: Control = null
 
 # 按钮交互状态
 var is_card_char_active = false
@@ -418,6 +422,25 @@ func _on_weekend_hotzone_card_clicked(game_event: GameEvent):
 
 # 显示事件弹窗
 func _show_event_popup(event: GameEvent):
+	# 添加调试日志：弹窗显示前的文本验证
+	if event.event_id == 1001:  # 专门针对事件ID 1001
+		print("🎭 [WeekendMain._show_event_popup] 事件ID 1001弹窗显示前验证:")
+		print("  事件名称: ", event.event_name)
+		print("  事件类型: ", event.event_type)
+		print("  pre_check_text字段:")
+		print("    长度: ", event.pre_check_text.length())
+		print("    是否为空: ", event.pre_check_text.is_empty())
+		print("    前50字符: '", event.pre_check_text.substr(0, 50), "'")
+		print("  get_pre_check_text()方法:")
+		var pre_check_result = event.get_pre_check_text()
+		print("    返回长度: ", pre_check_result.length())
+		print("    前100字符: '", pre_check_result.substr(0, 100), "'")
+		print("  文本来源判断:")
+		if event.pre_check_text.is_empty():
+			print("    ❌ 使用回退逻辑 (get_description)")
+		else:
+			print("    ✅ 使用详细场景文本 (pre_check_text)")
+	
 	print("Weekend Main: 显示事件弹窗 - ", event.event_name)
 	
 	if not event_popup:
@@ -496,15 +519,19 @@ func _on_card_side_char_pressed():
 		hide_card_display()
 
 func _on_card_side_others_pressed():
-	# 切换CardSideOthers状态，但不显示CardDisplayPanel
+	# 切换CardSideOthers状态并显示/隐藏ItemCardDisplayPanel
 	is_card_others_active = !is_card_others_active
 	print("Weekend Main: Card Side Others状态: ", is_card_others_active)
 	
 	# 更新视觉效果
 	if is_card_others_active:
 		card_side_others.modulate = Color(1.3, 1.3, 1.3, 1.0)
+		# 显示ItemCardDisplayPanel
+		show_item_card_display()
 	else:
 		card_side_others.modulate = Color(1.0, 1.0, 1.0, 1.0)
+		# 隐藏ItemCardDisplayPanel
+		hide_item_card_display()
 
 # CardSideChar鼠标悬停事件
 func _on_card_side_char_mouse_entered():
@@ -556,6 +583,8 @@ func show_card_display():
 	
 	# 连接关闭信号
 	card_display_panel.panel_closed.connect(_on_card_display_panel_closed)
+	# 连接切换信号
+	card_display_panel.switch_to_item_panel.connect(_on_switch_to_item_panel)
 	
 	# 设置modulate颜色变化视觉反馈
 	card_display_panel.modulate = Color(0.8, 0.8, 0.8, 0.0)
@@ -572,6 +601,8 @@ func hide_card_display():
 	# 断开信号连接
 	if card_display_panel.panel_closed.is_connected(_on_card_display_panel_closed):
 		card_display_panel.panel_closed.disconnect(_on_card_display_panel_closed)
+	if card_display_panel.switch_to_item_panel.is_connected(_on_switch_to_item_panel):
+		card_display_panel.switch_to_item_panel.disconnect(_on_switch_to_item_panel)
 	
 	# 移除并清理
 	card_display_panel.queue_free()
@@ -593,3 +624,77 @@ func _on_card_display_panel_closed():
 	is_card_char_active = false
 	card_side_char.modulate = Color(1.0, 1.0, 1.0, 1.0)
 	hide_card_display()
+
+# 显示ItemCardDisplayPanel
+func show_item_card_display():
+	if item_card_display_panel:
+		return
+	
+	# 实例化ItemCardDisplayPanel
+	item_card_display_panel = ItemCardDisplayPanelScene.instantiate()
+	
+	# 添加到UILayer
+	$UILayer.add_child(item_card_display_panel)
+	
+	# 连接关闭信号
+	item_card_display_panel.panel_closed.connect(_on_item_card_display_panel_closed)
+	# 连接切换信号
+	item_card_display_panel.switch_to_character_panel.connect(_on_switch_to_character_panel)
+	
+	# 设置modulate颜色变化视觉反馈
+	item_card_display_panel.modulate = Color(0.8, 0.8, 0.8, 0.0)
+	var tween = create_tween()
+	tween.tween_property(item_card_display_panel, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.3)
+	
+	print("Weekend Main: ItemCardDisplayPanel已显示")
+
+# 隐藏ItemCardDisplayPanel
+func hide_item_card_display():
+	if not item_card_display_panel:
+		return
+	
+	# 断开信号连接
+	if item_card_display_panel.panel_closed.is_connected(_on_item_card_display_panel_closed):
+		item_card_display_panel.panel_closed.disconnect(_on_item_card_display_panel_closed)
+	if item_card_display_panel.switch_to_character_panel.is_connected(_on_switch_to_character_panel):
+		item_card_display_panel.switch_to_character_panel.disconnect(_on_switch_to_character_panel)
+	
+	# 移除并清理
+	item_card_display_panel.queue_free()
+	item_card_display_panel = null
+	
+	print("Weekend Main: ItemCardDisplayPanel已隐藏")
+
+# 处理ItemCardDisplayPanel关闭信号
+func _on_item_card_display_panel_closed():
+	print("Weekend Main: ItemCardDisplayPanel被关闭")
+	# 重置CardSideOthers状态
+	is_card_others_active = false
+	card_side_others.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	hide_item_card_display()
+
+# 处理切换到物品卡面板信号
+func _on_switch_to_item_panel():
+	print("Weekend Main: 切换到物品卡面板")
+	# 隐藏当前角色卡面板
+	hide_card_display()
+	# 重置角色卡按钮状态
+	is_card_char_active = false
+	card_side_char.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	# 显示物品卡面板
+	is_card_others_active = true
+	card_side_others.modulate = Color(1.3, 1.3, 1.3, 1.0)
+	show_item_card_display()
+
+# 处理切换到角色卡面板信号
+func _on_switch_to_character_panel():
+	print("Weekend Main: 切换到角色卡面板")
+	# 隐藏当前物品卡面板
+	hide_item_card_display()
+	# 重置物品卡按钮状态
+	is_card_others_active = false
+	card_side_others.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	# 显示角色卡面板
+	is_card_char_active = true
+	card_side_char.modulate = Color(1.3, 1.3, 1.3, 1.0)
+	show_card_display()

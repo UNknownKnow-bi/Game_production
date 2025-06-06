@@ -1,18 +1,16 @@
-[gd_scene load_steps=4 format=3 uid="uid://bs37bgo8oecj7"]
+[gd_scene load_steps=4 format=3 uid="uid://bjjt3q2w71cj2"]
 
-[ext_resource type="Script" uid="uid://bw32xboegpbmn" path="res://scripts/ui/card_display_panel.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://5phtfabpi2fg" path="res://scripts/ui/item_card_display_panel.gd" id="1_fj85v"]
 [ext_resource type="Texture2D" uid="uid://dbt2on8uaxdhk" path="res://assets/workday_main_scene/ui/character_icon.png" id="2_character_icon"]
 [ext_resource type="Texture2D" uid="uid://cw4buvd8kjci0" path="res://assets/workday_main_scene/ui/other_icon.png" id="3_other_icon"]
 
-[node name="CardDisplayPanel" type="Control"]
-layout_mode = 3
+[node name="ItemCardDisplayPanel" type="Panel"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_right = 4.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_script")
+script = ExtResource("1_fj85v")
 
 [node name="CharacterIconButton" type="TextureButton" parent="."]
 layout_mode = 1
@@ -52,35 +50,34 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.968627, 0.937255, 0.866667, 0.909804)
 
-[node name="CardScrollContainer" type="ScrollContainer" parent="."]
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 72.0
+offset_left = 10.0
+offset_top = 88.0
 offset_right = -1308.0
-offset_bottom = -20.0
+offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 2
 horizontal_scroll_mode = 0
 vertical_scroll_mode = 3
 
-[node name="CardGridContainer" type="GridContainer" parent="CardScrollContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="ScrollContainer"]
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/h_separation = 20
-theme_override_constants/v_separation = 20
-columns = 2
+size_flags_horizontal = 0
+theme_override_constants/separation = 35
 
 [node name="CloseButton" type="Button" parent="."]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -1317.0
-offset_top = 9.0
-offset_right = -1249.0
-offset_bottom = 63.0
+offset_left = -1368.0
+offset_top = 8.0
+offset_right = -1300.0
+offset_bottom = 62.0
 grow_horizontal = 0
 theme_override_font_sizes/font_size = 24
 text = "❌"

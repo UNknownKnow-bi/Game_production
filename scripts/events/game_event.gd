@@ -27,6 +27,10 @@ extends Resource
 # 事件文本数据
 var pre_check_text: String = ""
 var card_display_text: String = ""
+var success_text: String = ""
+var failure_text: String = ""
+var card_text_success: String = ""
+var card_text_failure: String = ""
 
 # 辅助函数
 func get_event_category() -> String:
@@ -239,10 +243,25 @@ func print_validation_result():
 
 # 获取检定前文本
 func get_pre_check_text() -> String:
+    # 添加调试日志：记录字段状态
+    if event_id == 1001:  # 专门针对事件ID 1001
+        print("📖 [GameEvent.get_pre_check_text] 事件ID 1001调用:")
+        print("  pre_check_text状态:")
+        print("    长度: ", pre_check_text.length())
+        print("    是否为空: ", pre_check_text.is_empty())
+        print("    前50字符: '", pre_check_text.substr(0, 50), "'")
+    
     if not pre_check_text.is_empty():
+        if event_id == 1001:
+            print("  ✅ 返回pre_check_text (非空)")
         return pre_check_text
     else:
         # 回退到原始描述
+        if event_id == 1001:
+            print("  ⚠️ pre_check_text为空，回退到get_description()")
+            var desc = get_description()
+            print("  回退描述长度: ", desc.length())
+            print("  回退描述前100字符: '", desc.substr(0, 100), "'")
         return get_description()
 
 # 获取卡片显示文本
@@ -253,7 +272,65 @@ func get_card_display_text() -> String:
         # 回退到事件名称
         return event_name
 
-# 设置文本数据
-func set_text_data(pre_text: String, card_text: String):
+# 获取成功文本
+func get_success_text() -> String:
+    if not success_text.is_empty():
+        return success_text
+    else:
+        # 回退到基础描述
+        return get_description()
+
+# 获取失败文本
+func get_failure_text() -> String:
+    if not failure_text.is_empty():
+        return failure_text
+    else:
+        # 回退到基础描述
+        return get_description()
+
+# 获取成功卡片文本
+func get_card_text_success() -> String:
+    if not card_text_success.is_empty():
+        return card_text_success
+    else:
+        # 回退到卡片显示文本
+        return get_card_display_text()
+
+# 获取失败卡片文本
+func get_card_text_failure() -> String:
+    if not card_text_failure.is_empty():
+        return card_text_failure
+    else:
+        # 回退到卡片显示文本
+        return get_card_display_text()
+
+# 设置文本数据 - 支持新的7列格式
+func set_text_data(pre_text: String, card_text: String, success_txt: String = "", failure_txt: String = "", card_success: String = "", card_failure: String = ""):
+    # 添加调试日志：记录方法调用
+    if event_id == 1001:  # 专门针对事件ID 1001
+        print("🔧 [GameEvent.set_text_data] 事件ID 1001调用:")
+        print("  传入参数:")
+        print("    pre_text长度: ", pre_text.length())
+        print("    pre_text前50字符: '", pre_text.substr(0, 50), "'")
+        print("    card_text: '", card_text, "'")
+        print("    success_txt长度: ", success_txt.length())
+        print("    failure_txt长度: ", failure_txt.length())
+        print("  设置前字段状态:")
+        print("    当前pre_check_text: '", pre_check_text, "'")
+        print("    当前pre_check_text长度: ", pre_check_text.length())
+    
     pre_check_text = pre_text
-    card_display_text = card_text 
+    card_display_text = card_text
+    success_text = success_txt
+    failure_text = failure_txt
+    card_text_success = card_success
+    card_text_failure = card_failure
+    
+    # 添加调试日志：记录设置结果
+    if event_id == 1001:  # 专门针对事件ID 1001
+        print("  设置后字段状态:")
+        print("    新pre_check_text长度: ", pre_check_text.length())
+        print("    新pre_check_text前50字符: '", pre_check_text.substr(0, 50), "'")
+        print("    新card_display_text: '", card_display_text, "'")
+        print("    字段设置是否成功: ", not pre_check_text.is_empty())
+        print("🔧 [GameEvent.set_text_data] 完成") 

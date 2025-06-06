@@ -10,9 +10,13 @@ var card_manager
 # 节点引用
 @onready var card_grid = $CardScrollContainer/CardGridContainer
 @onready var close_button = $CloseButton
+@onready var character_icon_button = $CharacterIconButton
+@onready var other_icon_button = $OtherIconButton
 
 # 信号
 signal panel_closed
+signal switch_to_character_panel
+signal switch_to_item_panel
 
 func _ready():
 	# 设置初始状态
@@ -20,6 +24,14 @@ func _ready():
 	
 	# 连接信号
 	close_button.pressed.connect(_on_close_button_pressed)
+	character_icon_button.pressed.connect(_on_character_icon_pressed)
+	other_icon_button.pressed.connect(_on_other_icon_pressed)
+	
+	# 设置按钮状态（当前面板是角色卡面板）
+	character_icon_button.disabled = true
+	character_icon_button.modulate = Color(1.0, 1.0, 1.0, 0.5)  # 半透明表示当前面板
+	other_icon_button.disabled = false
+	other_icon_button.modulate = Color.WHITE
 	
 	# 加载卡片
 	load_cards()
@@ -130,4 +142,15 @@ func _find_canvas_layers_recursive(node, result_array):
 func _on_detail_popup_closed(popup):
 	# 移除弹窗
 	if popup and is_instance_valid(popup):
-		popup.queue_free() 
+		popup.queue_free()
+
+# 角色图标按钮点击处理
+func _on_character_icon_pressed():
+	# 当前已经是角色卡面板，不执行切换
+	print("CardDisplayPanel: 已经是角色卡面板")
+
+# 其他图标按钮点击处理
+func _on_other_icon_pressed():
+	# 切换到物品卡面板
+	print("CardDisplayPanel: 切换到物品卡面板")
+	switch_to_item_panel.emit() 
