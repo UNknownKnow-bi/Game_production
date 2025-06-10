@@ -4,7 +4,7 @@ extends PanelContainer
 # 导出属性
 @export var event_title: String = ""
 @export var is_completed: bool = false
-@export var title_font_size: int = 45
+@export var title_font_size: int = 25
 
 # 样式属性
 var background_type: String = "default"

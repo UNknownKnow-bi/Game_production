@@ -446,6 +446,9 @@ func create_event_with_error_handling(columns: Array, line_number: int) -> GameE
 func validate_and_fix_event_data(event: GameEvent):
 	var fixed_issues = []
 	
+	# 应用global_check格式转换和验证
+	_apply_global_check_conversion(event)
+	
 	# 检查duration_rounds
 	if event.duration_rounds <= 0 or event.duration_rounds > 999:
 		print("⚠ 修复异常duration_rounds: ", event.duration_rounds, " -> 1 (事件: ", event.event_name, ")")
@@ -518,6 +521,13 @@ func parse_json_field_safe(json_string: String) -> Dictionary:
 	
 	# 确保返回Dictionary类型
 	if result is Dictionary:
+		# 对global_check字段进行格式验证和转换
+		if json_string.contains("check_mode"):
+			print("EventManager: 检测到旧格式global_check，尝试转换...")
+			var converted = _convert_legacy_global_check(result)
+			if not converted.is_empty():
+				print("EventManager: 旧格式转换成功")
+				return converted
 		return result
 	else:
 		print("JSON解析结果不是Dictionary类型，返回空字典。解析结果类型: ", typeof(result), "，值: ", result)
@@ -525,6 +535,113 @@ func parse_json_field_safe(json_string: String) -> Dictionary:
 	
 	if detailed_debug_mode:
 		print("解析JSON字段: ", json_string, " -> ", result)
+
+# 转换旧格式global_check为新格式
+func _convert_legacy_global_check(old_format: Dictionary) -> Dictionary:
+	if old_format.is_empty():
+		return {}
+	
+	# 如果已经是新格式，直接返回
+	if old_format.has("required_checks"):
+		return old_format
+	
+	var requirements = []
+	
+	# 处理旧格式
+	if old_format.has("check_mode"):
+		var check_mode = old_format.get("check_mode", "")
+		if check_mode == "single_attribute":
+			var attr_check = old_format.get("single_attribute_check", {})
+			if attr_check.has("attribute_name") and attr_check.has("threshold"):
+				requirements.append({
+					"attribute": attr_check.get("attribute_name", ""),
+					"threshold": attr_check.get("threshold", 0),
+					"success_required": attr_check.get("success_required", 1)
+				})
+		elif check_mode == "multi_attribute":
+			var checks = old_format.get("multi_attribute_check", [])
+			for check in checks:
+				if check.has("attribute_name") and check.has("threshold"):
+					requirements.append({
+						"attribute": check.get("attribute_name", ""),
+						"threshold": check.get("threshold", 0),
+						"success_required": check.get("success_required", 1)
+					})
+	
+	if requirements.is_empty():
+		return old_format
+	
+	return {
+		"required_checks": requirements
+	}
+
+# 验证global_check格式
+func _validate_global_check_format(global_check: Dictionary) -> bool:
+	if global_check.is_empty():
+		return true
+	
+	# 检查新格式
+	if global_check.has("required_checks"):
+		var checks = global_check["required_checks"]
+		if not checks is Array:
+			print("EventManager: global_check格式错误 - required_checks不是数组")
+			return false
+		
+		for check in checks:
+			if not check is Dictionary:
+				print("EventManager: global_check格式错误 - 检查项不是字典")
+				return false
+			
+			if not check.has("attribute") or not check.has("threshold"):
+				print("EventManager: global_check格式错误 - 缺少必需字段attribute或threshold")
+				return false
+			
+			var attribute = check.get("attribute", "")
+			var threshold = check.get("threshold", 0)
+			var success_required = check.get("success_required", 1)
+			
+			# 验证属性名称
+			var valid_attributes = ["social", "resistance", "innovation", "execution", "physical", "power", "reputation", "piety"]
+			if not attribute in valid_attributes:
+				print("EventManager: global_check格式错误 - 无效属性名称: ", attribute)
+				return false
+			
+			# 验证数值
+			if not threshold is int or threshold < 0:
+				print("EventManager: global_check格式错误 - 无效阈值: ", threshold)
+				return false
+			
+			if not success_required is int or success_required < 1:
+				print("EventManager: global_check格式错误 - 无效成功要求: ", success_required)
+				return false
+		
+		return true
+	
+	# 检查旧格式 - 为了兼容性
+	if global_check.has("check_mode"):
+		print("EventManager: 检测到旧格式global_check - 兼容但建议升级")
+		return true
+	
+	print("EventManager: global_check格式未知")
+	return false
+
+# 应用global_check格式转换到事件
+func _apply_global_check_conversion(event: GameEvent):
+	if not event or event.global_check.is_empty():
+		return
+	
+	if not _validate_global_check_format(event.global_check):
+		print("EventManager: 事件 ", event.event_name, " 的global_check格式无效，尝试修复...")
+		
+		# 尝试转换旧格式
+		var converted = _convert_legacy_global_check(event.global_check)
+		if not converted.is_empty() and _validate_global_check_format(converted):
+			event.global_check = converted
+			print("EventManager: 事件 ", event.event_name, " 的global_check格式已修复")
+		else:
+			print("EventManager: 无法修复事件 ", event.event_name, " 的global_check格式")
+	else:
+		print("EventManager: 事件 ", event.event_name, " 的global_check格式验证通过")
 
 # 检查是否已有加载的数据
 func has_loaded_data() -> bool:

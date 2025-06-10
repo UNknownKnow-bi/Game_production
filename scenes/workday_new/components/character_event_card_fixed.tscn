@@ -76,13 +76,13 @@ stretch_mode = 5
 
 [node name="RoundInfo" type="Label" parent="CardContent"]
 layout_mode = 0
-offset_left = 5.0
-offset_top = 150.0
-offset_right = 177.0
-offset_bottom = 180.0
+offset_left = 158.0
+offset_top = 196.0
+offset_right = 200.0
+offset_bottom = 262.0
 theme_override_colors/font_color = Color(0.2, 0.2, 0.2, 1)
 theme_override_fonts/font = ExtResource("2_ppt5y")
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 40
 text = "5"
 horizontal_alignment = 1
 vertical_alignment = 1

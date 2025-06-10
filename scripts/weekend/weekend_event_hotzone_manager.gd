@@ -9,8 +9,12 @@ extends Node
 # 随机位置配置
 @export var enable_random_positioning: bool = false
 @export var min_card_distance: float = 15.0
-@export var max_position_attempts: int = 100
+@export var max_position_attempts: int = 150
 @export var hotzone_padding: Vector2 = Vector2(10, 10)
+
+# 排除区域配置
+@export var excluded_regions: Array[Rect2] = []
+@export var region_padding: float = 25.0
 
 # 卡片尺寸和分布配置
 @export var card_size: Vector2 = Vector2(240, 140)
@@ -63,6 +67,8 @@ func set_hotzone_container(container: Control):
 		print("✓ Weekend事件热区容器设置成功: ", container.name)
 		# 设置容器布局
 		_setup_hotzone_container(container)
+		# 初始化排除区域
+		_initialize_excluded_regions()
 	else:
 		print("✗ Weekend事件热区容器为null")
 	
@@ -427,53 +433,92 @@ func _generate_diagonal_scattered_positions(card_count: int) -> Array[Vector2]:
 	
 	for i in range(card_count):
 		var position: Vector2
+		var found_valid_position = false
+		var corner_attempts = 0
+		var max_corner_attempts = 50
 		
 		if i == 0:
 			# 第一张卡片：左上角区域
-			var max_x = max(0, corner_width - effective_card_size.x)
-			var max_y = max(0, corner_height - effective_card_size.y)
-			var x = hotzone_padding.x + randf() * max_x
-			var y = hotzone_padding.y + randf() * max_y
-			position = Vector2(x, y)
-			print("卡片", i+1, "放置在左上角: ", position)
-			
-		elif i == 1:
-			# 第二张卡片：右下角区域
-			var start_x = hotzone_padding.x + (usable_area.x - corner_width)
-			var start_y = hotzone_padding.y + (usable_area.y - corner_height)
-			var max_x = max(0, corner_width - effective_card_size.x)
-			var max_y = max(0, corner_height - effective_card_size.y)
-			var x = start_x + randf() * max_x
-			var y = start_y + randf() * max_y
-			position = Vector2(x, y)
-			print("卡片", i+1, "放置在右下角: ", position)
-			
-		elif i == 2:
-			# 第三张卡片：右上角或左下角随机选择
-			if randf() > 0.5:
-				# 右上角
-				var start_x = hotzone_padding.x + (usable_area.x - corner_width)
-				var max_x = max(0, corner_width - effective_card_size.x)
-				var max_y = max(0, corner_height - effective_card_size.y)
-				var x = start_x + randf() * max_x
-				var y = hotzone_padding.y + randf() * max_y
-				position = Vector2(x, y)
-				print("卡片", i+1, "放置在右上角: ", position)
-			else:
-				# 左下角
-				var start_y = hotzone_padding.y + (usable_area.y - corner_height)
+			while not found_valid_position and corner_attempts < max_corner_attempts:
 				var max_x = max(0, corner_width - effective_card_size.x)
 				var max_y = max(0, corner_height - effective_card_size.y)
 				var x = hotzone_padding.x + randf() * max_x
+				var y = hotzone_padding.y + randf() * max_y
+				position = Vector2(x, y)
+				
+				if not _is_position_in_excluded_region(position, effective_card_size):
+					found_valid_position = true
+					print("卡片", i+1, "放置在左上角: ", position)
+				else:
+					corner_attempts += 1
+			
+		elif i == 1:
+			# 第二张卡片：右下角区域
+			while not found_valid_position and corner_attempts < max_corner_attempts:
+				var start_x = hotzone_padding.x + (usable_area.x - corner_width)
+				var start_y = hotzone_padding.y + (usable_area.y - corner_height)
+				var max_x = max(0, corner_width - effective_card_size.x)
+				var max_y = max(0, corner_height - effective_card_size.y)
+				var x = start_x + randf() * max_x
 				var y = start_y + randf() * max_y
 				position = Vector2(x, y)
-				print("卡片", i+1, "放置在左下角: ", position)
+				
+				if not _is_position_in_excluded_region(position, effective_card_size):
+					found_valid_position = true
+					print("卡片", i+1, "放置在右下角: ", position)
+				else:
+					corner_attempts += 1
+			
+		elif i == 2:
+			# 第三张卡片：右上角或左下角随机选择
+			var try_top_right = randf() > 0.5
+			
+			# 先尝试首选角落
+			if try_top_right:
+				while not found_valid_position and corner_attempts < max_corner_attempts / 2:
+					var start_x = hotzone_padding.x + (usable_area.x - corner_width)
+					var max_x = max(0, corner_width - effective_card_size.x)
+					var max_y = max(0, corner_height - effective_card_size.y)
+					var x = start_x + randf() * max_x
+					var y = hotzone_padding.y + randf() * max_y
+					position = Vector2(x, y)
+					
+					if not _is_position_in_excluded_region(position, effective_card_size):
+						found_valid_position = true
+						print("卡片", i+1, "放置在右上角: ", position)
+					else:
+						corner_attempts += 1
+			
+			# 如果首选角落失败，尝试左下角
+			if not found_valid_position:
+				corner_attempts = 0
+				while not found_valid_position and corner_attempts < max_corner_attempts / 2:
+					var start_y = hotzone_padding.y + (usable_area.y - corner_height)
+					var max_x = max(0, corner_width - effective_card_size.x)
+					var max_y = max(0, corner_height - effective_card_size.y)
+					var x = hotzone_padding.x + randf() * max_x
+					var y = start_y + randf() * max_y
+					position = Vector2(x, y)
+					
+					if not _is_position_in_excluded_region(position, effective_card_size):
+						found_valid_position = true
+						print("卡片", i+1, "放置在左下角: ", position)
+					else:
+						corner_attempts += 1
 		else:
-			# 后续卡片：在剩余空间中散乱分布
+			# 后续卡片：在剩余空间中散乱分布，避开排除区域
 			var max_x = max(0, usable_area.x - effective_card_size.x)
 			var max_y = max(0, usable_area.y - effective_card_size.y)
 			position = _find_non_overlapping_position(positions, Vector2(max_x, max_y), effective_card_size)
+			found_valid_position = true
 			print("卡片", i+1, "散乱分布: ", position)
+		
+		# 如果特定角落策略失败，使用通用位置查找算法
+		if not found_valid_position:
+			print("⚠ 角落策略失败，使用通用位置查找算法")
+			var max_x = max(0, usable_area.x - effective_card_size.x)
+			var max_y = max(0, usable_area.y - effective_card_size.y)
+			position = _find_non_overlapping_position(positions, Vector2(max_x, max_y), effective_card_size)
 		
 		# 确保位置在边界内
 		position.x = clamp(position.x, hotzone_padding.x, container_size.x - effective_card_size.x - hotzone_padding.x)
@@ -505,16 +550,68 @@ func _find_non_overlapping_position(existing_positions: Array[Vector2], max_pos:
 				is_valid = false
 				break
 		
+		# 检查是否在排除区域内
+		if is_valid and _is_position_in_excluded_region(candidate_pos, card_size):
+			is_valid = false
+		
 		if is_valid:
 			return candidate_pos
 		
 		attempts += 1
 	
-	# 如果找不到合适位置，使用网格布局作为后备
-	print("⚠ 无法找到不重叠位置，使用后备位置")
-	var grid_x = (existing_positions.size() % 2) * (card_size.x + min_card_distance)
-	var grid_y = (existing_positions.size() / 2) * (card_size.y + min_card_distance)
-	return Vector2(hotzone_padding.x + grid_x, hotzone_padding.y + grid_y)
+	# 如果找不到合适位置，使用智能网格布局作为后备
+	print("⚠ 无法找到不重叠位置，使用智能网格后备策略")
+	return _generate_fallback_grid_position(existing_positions, card_size)
+
+# 生成智能网格后备位置
+func _generate_fallback_grid_position(existing_positions: Array[Vector2], card_size: Vector2) -> Vector2:
+	var container_size = hotzone_container.size if hotzone_container else Vector2(1000, 600)
+	var grid_spacing = Vector2(card_size.x + min_card_distance, card_size.y + min_card_distance)
+	
+	# 计算网格参数
+	var cols = max(1, int((container_size.x - hotzone_padding.x * 2) / grid_spacing.x))
+	var rows = max(1, int((container_size.y - hotzone_padding.y * 2) / grid_spacing.y))
+	
+	print("网格后备策略: ", cols, "列 x ", rows, "行")
+	
+	# 尝试网格位置，避开排除区域
+	for row in range(rows):
+		for col in range(cols):
+			var grid_pos = Vector2(
+				hotzone_padding.x + col * grid_spacing.x,
+				hotzone_padding.y + row * grid_spacing.y
+			)
+			
+			# 检查网格位置是否在排除区域内
+			if not _is_position_in_excluded_region(grid_pos, card_size):
+				# 检查是否与现有位置过近
+				var is_too_close = false
+				for existing_pos in existing_positions:
+					var distance = grid_pos.distance_to(existing_pos)
+					if distance < min_card_distance:
+						is_too_close = true
+						break
+				
+				if not is_too_close:
+					print("✓ 找到有效网格位置: ", grid_pos)
+					return grid_pos
+	
+	# 如果所有网格位置都被占用或在排除区域内，返回安全默认位置
+	print("⚠ 所有网格位置都不可用，使用安全默认位置")
+	var safe_default = Vector2(hotzone_padding.x, hotzone_padding.y)
+	
+	# 尝试在容器右下角找到安全位置
+	if hotzone_container:
+		var bottom_right = Vector2(
+			hotzone_container.size.x - card_size.x - hotzone_padding.x,
+			hotzone_container.size.y - card_size.y - hotzone_padding.y
+		)
+		
+		if not _is_position_in_excluded_region(bottom_right, card_size):
+			safe_default = bottom_right
+			print("✓ 使用右下角安全位置: ", safe_default)
+	
+	return safe_default
 
 # 启用/禁用随机定位
 func set_random_positioning(enabled: bool):
@@ -748,4 +845,84 @@ func _verify_card_initialization(card: Node, game_event: GameEvent):
 			card._connect_event_manager_signals()
 			print("✓ 重新连接信号: ", game_event.event_name)
 	
-	print("=== WeekendEventHotzoneManager._verify_card_initialization 完成 ===") 
+	print("=== WeekendEventHotzoneManager._verify_card_initialization 完成 ===")
+
+# 初始化排除区域
+func _initialize_excluded_regions():
+	print("=== WeekendEventHotzoneManager._initialize_excluded_regions 开始 ===")
+	
+	if not hotzone_container:
+		print("✗ 热区容器未设置，无法初始化排除区域")
+		return
+	
+	# 清空现有排除区域
+	excluded_regions.clear()
+	
+	# 定义其他三个热区在UILayer坐标系中的位置（更新为实际场景位置）
+	var other_hotzones_uilayer = [
+		Rect2(567, 196, 278, 77),   # DailyEventHotzone1 - 更新后的实际位置
+		Rect2(595, 600, 300, 62),   # DailyEventHotzone2 - 更新后的实际位置
+		Rect2(1279, 552, 224, 75)   # DailyEventHotzone3 - 更新后的实际位置
+	]
+	
+	print("UILayer坐标系中的其他热区:")
+	for i in range(other_hotzones_uilayer.size()):
+		print("  热区", i+1, ": ", other_hotzones_uilayer[i])
+	
+	# 转换为WeekendEventHotzone4的本地坐标系
+	for uilayer_rect in other_hotzones_uilayer:
+		var local_rect = _convert_uilayer_to_local_coords(uilayer_rect)
+		excluded_regions.append(local_rect)
+		print("  转换为本地坐标: ", local_rect)
+	
+	print("✓ 初始化了", excluded_regions.size(), "个排除区域")
+	_debug_excluded_regions()
+	print("=== WeekendEventHotzoneManager._initialize_excluded_regions 完成 ===")
+
+# 坐标转换：UILayer坐标 -> WeekendEventHotzone4本地坐标
+func _convert_uilayer_to_local_coords(uilayer_rect: Rect2) -> Rect2:
+	if not hotzone_container:
+		return Rect2()
+	
+	# WeekendEventHotzone4在UILayer中的位置
+	var weekend_hotzone_offset = Vector2(473, 112)
+	
+	# 转换位置
+	var local_position = uilayer_rect.position - weekend_hotzone_offset
+	
+	# 扩展区域以包含缓冲区
+	var expanded_rect = Rect2(
+		local_position.x - region_padding,
+		local_position.y - region_padding,
+		uilayer_rect.size.x + region_padding * 2,
+		uilayer_rect.size.y + region_padding * 2
+	)
+	
+	return expanded_rect
+
+# 检查位置是否在排除区域内
+func _is_position_in_excluded_region(position: Vector2, card_size: Vector2) -> bool:
+	# 创建卡片的矩形区域
+	var card_rect = Rect2(position, card_size)
+	
+	# 检查是否与任一排除区域重叠
+	for excluded_region in excluded_regions:
+		if card_rect.intersects(excluded_region):
+			return true
+	
+	return false
+
+# 调试排除区域信息
+func _debug_excluded_regions():
+	print("=== WeekendEventHotzoneManager._debug_excluded_regions ===")
+	print("排除区域数量: ", excluded_regions.size())
+	print("区域缓冲距离: ", region_padding)
+	
+	if hotzone_container:
+		print("容器尺寸: ", hotzone_container.size)
+	
+	for i in range(excluded_regions.size()):
+		var region = excluded_regions[i]
+		print("排除区域", i+1, ": 位置(", region.position.x, ",", region.position.y, ") 尺寸(", region.size.x, ",", region.size.y, ")")
+	
+	print("=== _debug_excluded_regions 完成 ===") 

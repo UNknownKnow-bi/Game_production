@@ -89,32 +89,45 @@ theme_override_fonts/font = ExtResource("6_font")
 theme_override_font_sizes/font_size = 30
 
 [node name="PrivilegeCardDisplay" parent="UILayer" instance=ExtResource("7_cardui")]
-offset_left = 1566.0
-offset_top = 340.0
-offset_right = 1838.0
-offset_bottom = 696.0
+offset_left = 1605.0
+offset_top = 358.0
+offset_right = 1877.0
+offset_bottom = 714.0
+metadata/_edit_lock_ = true
 
-[node name="VBoxContainer" parent="UILayer/PrivilegeCardDisplay" index="0"]
-offset_left = 75.0
-offset_top = 151.0
-offset_right = 75.0
-offset_bottom = 151.0
+[node name="BackgroundImage" parent="UILayer/PrivilegeCardDisplay" index="0"]
+offset_left = 44.0
+offset_top = 91.0
+offset_right = 55.0
+offset_bottom = 87.0
+
+[node name="VBoxContainer" parent="UILayer/PrivilegeCardDisplay" index="1"]
+anchors_preset = -1
+anchor_left = 0.279
+anchor_top = 0.39
+anchor_right = 1.046
+anchor_bottom = 1.236
+offset_left = 0.112
+offset_top = 0.159988
+offset_right = -0.511993
+offset_bottom = -0.0160217
 
 [node name="CardButton" parent="UILayer/PrivilegeCardDisplay/VBoxContainer/CardContainer" index="0"]
-offset_top = -88.0
+offset_left = 12.0
+offset_top = -36.0
 
 [node name="CardImage" parent="UILayer/PrivilegeCardDisplay/VBoxContainer/CardContainer/CardButton" index="0"]
-offset_top = 76.0
-offset_right = -55.0
+offset_top = 40.0
+offset_bottom = -14.0
 
 [node name="StatusLabel" parent="UILayer/PrivilegeCardDisplay/VBoxContainer/CardContainer" index="1"]
-offset_left = -98.5
-offset_top = -129.0
-offset_right = 50.5
-offset_bottom = -99.0
+offset_left = -65.0
+offset_top = -92.0
+offset_right = 84.0
+offset_bottom = -62.0
 theme_override_colors/font_color = Color(0.926411, 0.868389, 0.982779, 1)
 theme_override_fonts/font = ExtResource("6_font")
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 25
 
 [node name="CardDrawPanel" parent="UILayer" instance=ExtResource("8_drawui")]
 visible = false
@@ -139,33 +152,35 @@ texture_normal = ExtResource("12_staricon")
 stretch_mode = 0
 
 [node name="DailyEventHotzone1" type="VBoxContainer" parent="UILayer"]
-offset_left = 563.0
-offset_top = 131.0
-offset_right = 841.0
-offset_bottom = 270.0
+offset_left = 567.0
+offset_top = 196.0
+offset_right = 845.0
+offset_bottom = 273.0
 theme_override_constants/separation = 15
 
 [node name="DailyEventHotzone2" type="VBoxContainer" parent="UILayer"]
-offset_left = 602.0
-offset_top = 550.0
-offset_right = 902.0
-offset_bottom = 686.0
+offset_left = 595.0
+offset_top = 600.0
+offset_right = 895.0
+offset_bottom = 662.0
 theme_override_constants/separation = 15
 
 [node name="DailyEventHotzone3" type="VBoxContainer" parent="UILayer"]
-offset_left = 1276.0
-offset_top = 525.0
-offset_right = 1578.0
-offset_bottom = 640.0
+offset_left = 1279.0
+offset_top = 552.0
+offset_right = 1503.0
+offset_bottom = 627.0
 theme_override_constants/separation = 15
 
 [node name="WeekendEventHotzone4" type="Control" parent="UILayer"]
 layout_mode = 3
 anchors_preset = 0
-offset_left = 816.0
-offset_top = 256.0
-offset_right = 1324.0
-offset_bottom = 820.0
+offset_left = 473.0
+offset_top = 112.0
+offset_right = 1605.0
+offset_bottom = 882.0
+mouse_filter = 2
+metadata/_edit_lock_ = true
 
 [editable path="UILayer/TimeDisplay"]
 [editable path="UILayer/PrivilegeCardDisplay"]

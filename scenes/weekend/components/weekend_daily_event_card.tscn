@@ -6,10 +6,6 @@
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
 bg_color = Color(0.95, 0.95, 0.95, 0)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
 border_color = Color(0.7, 0.7, 0.7, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
@@ -17,11 +13,11 @@ corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
 [node name="WeekendDailyEventCard" type="PanelContainer"]
-custom_minimum_size = Vector2(300, 200)
+custom_minimum_size = Vector2(300, 70)
 offset_left = 2.0
 offset_top = 2.0
 offset_right = 302.0
-offset_bottom = 202.0
+offset_bottom = 72.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_1")
 script = ExtResource("1_script")
 
@@ -45,10 +41,10 @@ stretch_mode = 5
 
 [node name="EventTitle" type="Label" parent="CardContent"]
 layout_mode = 0
-offset_left = 21.0
-offset_top = 75.0
-offset_right = 229.0
-offset_bottom = 117.0
+offset_left = 22.0
+offset_top = 11.0
+offset_right = 228.0
+offset_bottom = 53.0
 theme_override_colors/font_color = Color(1, 0.988235, 0.937255, 1)
 theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 25

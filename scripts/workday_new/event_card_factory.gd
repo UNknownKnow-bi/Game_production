@@ -215,7 +215,7 @@ static func _initialize_weekend_random_card(card: WeekendRandomEventCard, game_e
 	card.set_game_event(game_event)
 	
 	# 设置适合周末场景的字体大小
-	card.title_font_size = 45
+	card.title_font_size = 20
 	
 	print("EventCardFactory: ✓ 周末随机卡片初始化完成 - 标题: ", card.event_title)
 
@@ -239,7 +239,7 @@ static func _initialize_weekend_daily_card(card: WeekendDailyEventCard, game_eve
 	card.is_completed = false  # 默认为未完成
 	
 	# 设置字体大小（适配weekend场景）
-	card.title_font_size = 45
+	card.title_font_size = 20
 	
 	print("EventCardFactory: ✓ 周末日常卡片初始化完成 - 标题: ", card.event_title)
 

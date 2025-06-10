@@ -92,25 +92,96 @@ func get_description() -> String:
     if not character_name.is_empty():
         desc += "相关人物: %s\n" % character_name
     
-    # 添加检定信息
+    # 添加检定信息 - 支持新格式
     if not global_check.is_empty():
-        var check_mode = global_check.get("check_mode", "")
-        if check_mode == "single_attribute":
-            var attr_check = global_check.get("single_attribute_check", {})
-            desc += "检定: %s 属性, 阈值 %s\n" % [
-                attr_check.get("attribute_name", ""),
-                attr_check.get("threshold", 0)
-            ]
-        elif check_mode == "multi_attribute":
-            var checks = global_check.get("multi_attribute_check", [])
-            desc += "多属性检定:\n"
-            for check in checks:
-                desc += " - %s 属性, 阈值 %s\n" % [
-                    check.get("attribute_name", ""),
-                    check.get("threshold", 0)
+        var attribute_requirements = get_attribute_requirements()
+        if not attribute_requirements.is_empty():
+            desc += "属性检定:\n"
+            for req in attribute_requirements:
+                desc += " - %s 属性, 阈值 %s, 成功 %s 次\n" % [
+                    req.attribute,
+                    req.threshold,
+                    req.success_required
                 ]
     
     return desc
+
+# 获取属性需求列表 (新方法)
+func get_attribute_requirements() -> Array:
+    var requirements = []
+    
+    if global_check.is_empty():
+        return requirements
+    
+    # 处理新格式
+    if global_check.has("required_checks"):
+        var checks = global_check["required_checks"]
+        if checks is Array:
+            for check in checks:
+                if check is Dictionary and check.has("attribute") and check.has("threshold"):
+                    requirements.append({
+                        "attribute": check.get("attribute", ""),
+                        "threshold": check.get("threshold", 0),
+                        "success_required": check.get("success_required", 1)
+                    })
+        return requirements
+    
+    # 处理旧格式 - 向后兼容
+    if global_check.has("check_mode"):
+        var check_mode = global_check.get("check_mode", "")
+        if check_mode == "single_attribute":
+            var attr_check = global_check.get("single_attribute_check", {})
+            if attr_check.has("attribute_name") and attr_check.has("threshold"):
+                requirements.append({
+                    "attribute": attr_check.get("attribute_name", ""),
+                    "threshold": attr_check.get("threshold", 0),
+                    "success_required": attr_check.get("success_required", 1)
+                })
+        elif check_mode == "multi_attribute":
+            var checks = global_check.get("multi_attribute_check", [])
+            for check in checks:
+                if check.has("attribute_name") and check.has("threshold"):
+                    requirements.append({
+                        "attribute": check.get("attribute_name", ""),
+                        "threshold": check.get("threshold", 0),
+                        "success_required": check.get("success_required", 1)
+                    })
+    
+    return requirements
+
+# 检查是否有属性检定需求 (新方法)
+func has_attribute_check() -> bool:
+    return not get_attribute_requirements().is_empty()
+
+# 获取简化的global_check格式 (新方法)
+func get_simplified_global_check() -> Dictionary:
+    var requirements = get_attribute_requirements()
+    if requirements.is_empty():
+        return {}
+    
+    return {
+        "required_checks": requirements
+    }
+
+# 转换旧格式到新格式 (新方法)
+func convert_legacy_global_check() -> bool:
+    if global_check.is_empty():
+        return false
+    
+    # 如果已经是新格式，不需要转换
+    if global_check.has("required_checks"):
+        return false
+    
+    # 转换旧格式
+    var requirements = get_attribute_requirements()
+    if not requirements.is_empty():
+        global_check = {
+            "required_checks": requirements
+        }
+        print("GameEvent: 转换旧格式global_check为新格式 - 事件: ", event_name)
+        return true
+    
+    return false
 
 # 获取调试信息
 func get_debug_info() -> Dictionary:

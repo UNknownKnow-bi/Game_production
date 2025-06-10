@@ -65,10 +65,72 @@ func _ready():
 	
 	_setup_privilege_card_system()
 	_setup_star_button()
+	
+	# ===== EventManager状态同步和事件更新 =====
+	print("=== Weekend Main: EventManager状态同步开始 ===")
+	_initialize_event_manager_state()
+	
 	_setup_daily_event_system()
 	_setup_weekend_event_system()
 	
 	print("Weekend Main: 周末场景已加载")
+
+# 初始化EventManager状态
+func _initialize_event_manager_state():
+	print("Weekend Main: 初始化EventManager状态")
+	
+	# 检查EventManager是否存在
+	var event_manager = get_node_or_null("/root/EventManager")
+	if not event_manager:
+		print("✗ Weekend Main: EventManager未找到")
+		return
+	
+	# 检查EventManager是否已加载数据
+	var total_events = event_manager.get_total_events_count()
+	print("Weekend Main: EventManager事件总数:", total_events)
+	
+	if total_events == 0:
+		print("⚠ Weekend Main: EventManager没有数据，尝试手动加载...")
+		event_manager.load_events_from_tsv(event_manager.EVENTS_DATA_PATH, true)
+		print("Weekend Main: 手动加载后事件总数:", event_manager.get_total_events_count())
+	
+	# 检查TimeManager状态同步
+	if TimeManager:
+		var time_manager_round = TimeManager.get_current_round()
+		var event_manager_round = event_manager.current_round
+		print("Weekend Main: TimeManager回合:", time_manager_round)
+		print("Weekend Main: EventManager回合:", event_manager_round)
+		
+		# 如果状态不一致，强制同步
+		if time_manager_round != event_manager_round:
+			print("Weekend Main: 回合状态不一致，强制同步...")
+			event_manager.on_round_changed(time_manager_round)
+			print("Weekend Main: 同步后EventManager回合:", event_manager.current_round)
+	else:
+		print("⚠ Weekend Main: TimeManager未找到")
+	
+	# 更新可用事件（关键步骤）
+	print("=== Weekend Main: 更新EventManager可用事件 ===")
+	event_manager.update_available_events()
+	
+	# 验证各类别事件数量
+	var character_events = event_manager.get_active_events("character")
+	var random_events = event_manager.get_active_events("random")
+	var daily_events = event_manager.get_active_events("daily")
+	var ending_events = event_manager.get_active_events("ending")
+	
+	print("Weekend Main: 活跃事件统计:")
+	print("  人物事件:", character_events.size())
+	print("  随机事件:", random_events.size())
+	print("  日常事件:", daily_events.size())
+	print("  结局事件:", ending_events.size())
+	
+	if daily_events.size() == 0:
+		print("⚠ Weekend Main: 警告 - 没有可用的日常事件")
+	else:
+		print("✓ Weekend Main: 日常事件加载成功，数量:", daily_events.size())
+	
+	print("=== Weekend Main: EventManager状态同步完成 ===")
 
 # 初始化特权卡系统
 func _setup_privilege_card_system():
@@ -394,11 +456,61 @@ func _test_weekend_cards_in_hotzones():
 	print("  card_size: ", weekend_hotzone_manager.card_size)
 	print("  min_card_distance: ", weekend_hotzone_manager.min_card_distance)
 	print("  corner_region_ratio: ", weekend_hotzone_manager.corner_region_ratio)
+	print("  max_position_attempts: ", weekend_hotzone_manager.max_position_attempts)
+	print("  region_padding: ", weekend_hotzone_manager.region_padding)
+	print("  excluded_regions数量: ", weekend_hotzone_manager.excluded_regions.size())
+	
+	# 验证排除区域功能
+	_test_excluded_regions_functionality()
 	
 	# 使用WeekendEventHotzoneManager显示weekend character和random事件
 	weekend_hotzone_manager.display_weekend_events(weekend_test_events)
 	
 	print("✓ 周末卡片热区测试完成")
+
+# 测试排除区域功能
+func _test_excluded_regions_functionality():
+	print("=== Weekend Main: 测试排除区域功能 ===")
+	
+	if not weekend_hotzone_manager:
+		print("✗ 周末热区管理器未找到")
+		return
+	
+	# 验证排除区域是否正确初始化
+	var excluded_count = weekend_hotzone_manager.excluded_regions.size()
+	print("排除区域数量: ", excluded_count)
+	
+	if excluded_count != 3:
+		print("⚠ 警告: 期望3个排除区域，实际找到", excluded_count, "个")
+	
+	# 打印排除区域详细信息
+	for i in range(excluded_count):
+		var region = weekend_hotzone_manager.excluded_regions[i]
+		print("排除区域", i+1, ":")
+		print("  位置: (", region.position.x, ", ", region.position.y, ")")
+		print("  尺寸: ", region.size.x, " x ", region.size.y)
+		print("  范围: (", region.position.x, ",", region.position.y, ") 到 (", 
+			region.position.x + region.size.x, ",", region.position.y + region.size.y, ")")
+	
+	# 测试位置检查功能
+	if weekend_hotzone_manager.has_method("_is_position_in_excluded_region"):
+		var test_positions = [
+			Vector2(100, 50),   # 左上角测试点
+			Vector2(150, 450),  # 左下角测试点
+			Vector2(800, 450),  # 右下角测试点
+			Vector2(90, 19),    # DailyEventHotzone1区域内测试点 (563-473=90, 131-112=19)
+			Vector2(129, 438),  # DailyEventHotzone2区域内测试点 (602-473=129, 550-112=438)
+			Vector2(803, 413)   # DailyEventHotzone3区域内测试点 (1276-473=803, 525-112=413)
+		]
+		
+		print("位置检查测试:")
+		for i in range(test_positions.size()):
+			var test_pos = test_positions[i]
+			var is_excluded = weekend_hotzone_manager._is_position_in_excluded_region(test_pos, weekend_hotzone_manager.card_size)
+			var status = "排除" if is_excluded else "允许"
+			print("  测试位置", i+1, " (", test_pos.x, ",", test_pos.y, "): ", status)
+	
+	print("=== 排除区域功能测试完成 ===")
 
 # 处理热区卡片点击
 func _on_hotzone_card_clicked(game_event: GameEvent):
@@ -453,6 +565,7 @@ func _show_event_popup(event: GameEvent):
 		"title": event.event_name,
 		"description": event.get_pre_check_text() if event.has_method("get_pre_check_text") else event.event_description,
 		"image_path": event.background_path if not event.background_path.is_empty() else "",
+		"global_check": event.global_check,
 		"has_reject_option": true
 	}
 	

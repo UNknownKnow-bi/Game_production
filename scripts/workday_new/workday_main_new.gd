@@ -451,6 +451,7 @@ func _show_event_popup(event):
 			"title": event.event_name,
 			"description": event.get_pre_check_text(),  # 使用预检文本而不是原来的描述
 			"image_path": event.background_path if not event.background_path.is_empty() else "",
+			"global_check": event.global_check,  # 添加global_check字段以支持属性展示
 			"has_reject_option": true  # 可以从事件数据中决定
 		}
 		

@@ -19,7 +19,7 @@ class_name WeekendCharacterEventCard
 @export_group("样式")
 @export var border_color: Color = Color(0.7, 0.7, 0.7, 1.0) : set = set_border_color
 @export var corner_radius: int = 8 : set = set_corner_radius
-@export var border_width: int = 2 : set = set_border_width
+@export var border_width: int = 0 : set = set_border_width
 @export var background_color: Color = Color(1, 1, 1, 0) : set = set_background_color
 @export var title_font_size: int = 28 : set = set_title_font_size
 @export var name_font_size: int = 23 : set = set_name_font_size
