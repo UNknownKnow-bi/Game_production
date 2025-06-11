@@ -50,90 +50,139 @@ offset_bottom = 104.0
 theme_override_font_sizes/font_size = 20
 flat = true
 
-[node name="EventImage" type="TextureRect" parent="PopupPanel"]
+[node name="HSplitContainer" type="HSplitContainer" parent="PopupPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 120.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+split_offset = 100
+
+[node name="LeftPanel" type="Control" parent="PopupPanel/HSplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.6
+
+[node name="EventImage" type="TextureRect" parent="PopupPanel/HSplitContainer/LeftPanel"]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -150.0
-offset_top = 20.0
+offset_top = -100.0
 offset_right = 150.0
-offset_bottom = 170.0
+offset_bottom = 50.0
 grow_horizontal = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="TitleLabel" type="Label" parent="PopupPanel"]
+[node name="TitleLabel" type="Label" parent="PopupPanel/HSplitContainer/LeftPanel"]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -896.0
-offset_top = 270.0
-offset_right = -396.0
-offset_bottom = 340.0
+offset_left = -582.0
+offset_top = 113.0
+offset_right = 5.0
+offset_bottom = 183.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("3_2ffqk")
-theme_override_font_sizes/font_size = 70
+theme_override_font_sizes/font_size = 50
 text = "事件标题"
 
-[node name="ContentText" type="RichTextLabel" parent="PopupPanel"]
+[node name="ContentText" type="RichTextLabel" parent="PopupPanel/HSplitContainer/LeftPanel"]
 layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -856.0
-offset_top = -112.0
-offset_right = -256.0
-offset_bottom = 88.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 207.0
+offset_right = -69.0
+offset_bottom = -180.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/default_color = Color(0, 0, 0, 1)
 theme_override_fonts/normal_font = ExtResource("3_2ffqk")
-theme_override_font_sizes/normal_font_size = 30
+theme_override_font_sizes/normal_font_size = 24
 text = "事件内容描述..."
 fit_content = true
 
-[node name="AttributesBar" type="HBoxContainer" parent="PopupPanel"]
+[node name="AttributesBar" type="HBoxContainer" parent="PopupPanel/HSplitContainer/LeftPanel"]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -856.0
-offset_top = -191.0
-offset_right = 262.0
-offset_bottom = -96.0
+offset_left = -578.0
+offset_top = -180.0
+offset_right = 250.0
+offset_bottom = -120.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_constants/separation = 20
 
-[node name="ButtonsContainer" type="HBoxContainer" parent="PopupPanel"]
+[node name="ButtonsContainer" type="HBoxContainer" parent="PopupPanel/HSplitContainer/LeftPanel"]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -200.0
-offset_top = -60.0
-offset_right = 200.0
-offset_bottom = -20.0
+offset_left = -150.0
+offset_top = -80.0
+offset_right = 150.0
+offset_bottom = -40.0
 grow_horizontal = 2
 grow_vertical = 0
 alignment = 1
 
-[node name="AcceptButton" type="Button" parent="PopupPanel/ButtonsContainer"]
+[node name="AcceptButton" type="Button" parent="PopupPanel/HSplitContainer/LeftPanel/ButtonsContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "接受"
 
-[node name="RejectButton" type="Button" parent="PopupPanel/ButtonsContainer"]
+[node name="RejectButton" type="Button" parent="PopupPanel/HSplitContainer/LeftPanel/ButtonsContainer"]
 visible = false
 layout_mode = 2
 size_flags_horizontal = 3
 text = "拒绝"
+
+[node name="RightPanel" type="Control" parent="PopupPanel/HSplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.4
+
+[node name="SlotsPanelContainer" type="VBoxContainer" parent="PopupPanel/HSplitContainer/RightPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 15.0
+offset_top = 99.0
+offset_right = -15.0
+offset_bottom = -15.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SlotsTitle" type="Label" parent="PopupPanel/HSplitContainer/RightPanel/SlotsPanelContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("3_2ffqk")
+theme_override_font_sizes/font_size = 42
+text = "卡牌槽位"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="PopupPanel/HSplitContainer/RightPanel/SlotsPanelContainer"]
+layout_mode = 2
+
+[node name="SlotsContainer" type="VBoxContainer" parent="PopupPanel/HSplitContainer/RightPanel/SlotsPanelContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20

@@ -404,4 +404,5 @@ func set_text_data(pre_text: String, card_text: String, success_txt: String = ""
         print("    新pre_check_text前50字符: '", pre_check_text.substr(0, 50), "'")
         print("    新card_display_text: '", card_display_text, "'")
         print("    字段设置是否成功: ", not pre_check_text.is_empty())
-        print("🔧 [GameEvent.set_text_data] 完成") 
+        print("🔧 [GameEvent.set_text_data] 完成")
+

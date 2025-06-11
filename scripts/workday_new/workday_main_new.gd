@@ -445,6 +445,11 @@ func _show_event_popup(event):
 			print("事件弹窗已添加到UILayer")
 	
 	if popup:
+		# 调试输出：验证事件数据
+		print("WorkdayMain: 事件数据验证 - ID:", event.event_id, " 名称:", event.event_name)
+		print("WorkdayMain: global_check字段:", event.global_check)
+		print("WorkdayMain: attribute_aggregation字段:", event.attribute_aggregation)
+		
 		# 准备事件数据
 		var event_data = {
 			"event_id": event.event_id,
@@ -454,6 +459,8 @@ func _show_event_popup(event):
 			"global_check": event.global_check,  # 添加global_check字段以支持属性展示
 			"has_reject_option": true  # 可以从事件数据中决定
 		}
+		
+		print("WorkdayMain: 传递给弹窗的event_data.global_check:", event_data.global_check)
 		
 		# 显示事件弹窗
 		popup.show_event(event_data)

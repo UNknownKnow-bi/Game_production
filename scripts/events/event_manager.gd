@@ -256,8 +256,8 @@ func load_events_from_tsv(file_path: String, force_reload: bool = false):
 	print("✓ 文件内容读取成功，长度: ", content.length(), " 字符")
 	
 	var lines = content.split("\n")
-	# 使用split的第二个参数false来保留尾部空字段
-	var header = lines[0].split("\t", false)
+	# 使用更可靠的TAB分割方法来保留空字段
+	var header = split_with_empty_fields(lines[0], "\t")
 	
 	print("EventManager: 开始解析事件数据")
 	print("文件总行数: ", lines.size())
@@ -283,8 +283,9 @@ func load_events_from_tsv(file_path: String, force_reload: bool = false):
 			print("=== 处理第", i+1, "行 ===")
 			print("原始行内容: \"", line, "\"")
 		
-		# 使用split的第二个参数false来保留尾部空字段
-		var columns = line.split("\t", false)
+		# 使用更可靠的TAB分割方法来保留空字段
+		var columns = split_with_empty_fields(line, "\t")
+		
 		# 确保列数补全到22列，支持14-22列的数据
 		columns = ensure_column_count(columns)
 		if columns.size() < 14:  # 只检查必需字段（0-13）
@@ -355,6 +356,28 @@ func load_events_from_tsv(file_path: String, force_reload: bool = false):
 	
 	# 加载事件文本数据
 	load_event_text_data()
+
+# 自定义分割函数，正确处理连续分隔符并保留空字段
+func split_with_empty_fields(text: String, delimiter: String) -> Array:
+	var result = []
+	var current_field = ""
+	var i = 0
+	
+	while i < text.length():
+		if i + delimiter.length() <= text.length() and text.substr(i, delimiter.length()) == delimiter:
+			# 遇到分隔符，添加当前字段（可能为空）
+			result.append(current_field)
+			current_field = ""
+			i += delimiter.length()
+		else:
+			# 普通字符，添加到当前字段
+			current_field += text[i]
+			i += 1
+	
+	# 添加最后一个字段
+	result.append(current_field)
+	
+	return result
 
 # 确保列数达到22列，不足时补充空字符串
 func ensure_column_count(columns: Array) -> Array:
@@ -1022,7 +1045,7 @@ func load_event_text_data():
 			continue
 		
 		# 分割字段
-		var columns = line.split("\t")
+		var columns = split_with_empty_fields(line, "\t")
 		if columns.size() < 7:
 			print("⚠ 第", line_number, "行数据不完整，跳过 - 列数:", columns.size(), "/7")
 			continue

@@ -24,6 +24,7 @@ CharacterCardManager="*res://scripts/character_card_manager.gd"
 TimeManager="*res://scripts/managers/time_manager.gd"
 PrivilegeCardManager="*res://scripts/managers/privilege_card_manager.gd"
 ItemCardManager="*res://scripts/managers/item_card_manager.gd"
+EventSlotManager="*res://scripts/managers/event_slot_manager.gd"
 
 [display]
 

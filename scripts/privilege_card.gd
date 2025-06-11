@@ -21,6 +21,10 @@ func _init(type: String = "", id: String = "", acquired: int = 1, remaining: int
 func get_display_name() -> String:
 	return card_type + "卡"
 
+# 获取卡片类型
+func get_card_type() -> String:
+	return card_type
+
 # 检查卡片是否即将过期（剩余回合数 <= 2）
 func is_expiring_soon() -> bool:
 	return remaining_rounds <= 2

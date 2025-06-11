@@ -25,9 +25,15 @@ stretch_mode = 5
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+anchors_preset = -1
+anchor_left = 0.149
+anchor_top = 0.147
+anchor_right = 1.08
+anchor_bottom = 1.093
+offset_left = -6.8
+offset_top = -0.0999985
+offset_right = -1.52588e-05
+offset_bottom = -1.90002
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -37,18 +43,24 @@ size_flags_vertical = 3
 
 [node name="CardButton" type="Button" parent="VBoxContainer/CardContainer"]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
+anchors_preset = -1
+anchor_left = -0.036
+anchor_right = 1.085
 anchor_bottom = 1.0
+offset_left = -0.0519977
+offset_right = -16.405
 grow_horizontal = 2
 grow_vertical = 2
 flat = true
 
 [node name="CardImage" type="TextureRect" parent="VBoxContainer/CardContainer/CardButton"]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
+anchors_preset = -1
+anchor_right = 0.968
 anchor_bottom = 1.0
+offset_left = 7.0
+offset_top = 10.0
+offset_right = 0.399994
 grow_horizontal = 2
 grow_vertical = 2
 expand_mode = 1
@@ -61,9 +73,10 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -50.0
-offset_top = -25.0
-offset_right = 50.0
+offset_left = -60.5
+offset_top = -56.0
+offset_right = 39.5
+offset_bottom = -31.0
 grow_horizontal = 2
 grow_vertical = 0
 text = "剩余 7 回合"

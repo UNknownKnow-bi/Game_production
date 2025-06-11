@@ -18,6 +18,14 @@ signal panel_closed
 signal switch_to_character_panel
 signal switch_to_item_panel
 
+# 选择模式相关
+var is_in_selection_mode: bool = false
+var current_slot_data: EventSlotData = null
+var allowed_card_types: Array = []
+
+# 信号定义
+signal card_selected(card_type: String, card_id: String, card_data)
+
 # 初始化
 func _ready():
 	print("=== ItemCardDisplayPanel初始化开始 ===")
@@ -121,22 +129,89 @@ func get_displayed_card_count() -> int:
 		return 0
 	return vbox_container.get_child_count()
 
+# 进入选择模式
+func enter_selection_mode(slot_data: EventSlotData, allowed_types: Array):
+	print("ItemCardDisplayPanel: 进入选择模式")
+	is_in_selection_mode = true
+	current_slot_data = slot_data
+	allowed_card_types = allowed_types
+	
+	# 刷新显示以突出可选择的卡片
+	_refresh_cards_for_selection_mode()
+
+# 退出选择模式
+func exit_selection_mode():
+	print("ItemCardDisplayPanel: 退出选择模式")
+	is_in_selection_mode = false
+	current_slot_data = null
+	allowed_card_types.clear()
+	
+	# 恢复正常显示
+	refresh_display()
+
+# 刷新卡片显示以适应选择模式
+func _refresh_cards_for_selection_mode():
+	if not is_in_selection_mode:
+		return
+	
+	print("ItemCardDisplayPanel: 刷新选择模式显示, 允许类型: ", allowed_card_types)
+	
+	# 获取所有情报卡
+	var item_cards = item_card_manager.get_all_cards() if item_card_manager else []
+	
+	# 清空现有卡片显示
+	for child in vbox_container.get_children():
+		vbox_container.remove_child(child)
+		child.queue_free()
+	
+	# 只显示符合允许类型的卡片
+	if "情报卡" in allowed_card_types:
+		for card in item_cards:
+			var card_item = ItemCardScene.instantiate()
+			vbox_container.add_child(card_item)
+			card_item.display_card(card)
+			
+			# 连接选择信号而非详情信号
+			if card_item.has_signal("card_clicked"):
+				card_item.card_clicked.connect(_on_card_selected_for_slot.bind(card))
+			
+			# 添加视觉提示表明可选择
+			_add_selection_visual_hint(card_item)
+
+# 处理卡片选择（选择模式）
+func _on_card_selected_for_slot(card_data):
+	if not is_in_selection_mode:
+		return
+	
+	print("ItemCardDisplayPanel: 选择模式下卡片被点击: ", card_data.item_id)
+	
+	# 发射选择信号
+	card_selected.emit("情报卡", card_data.item_id, card_data)
+	
+	# 关闭面板
+	_close_panel()
+
+# 添加选择模式的视觉提示
+func _add_selection_visual_hint(card_item):
+	# 可以添加边框高亮、选择图标等视觉效果
+	# 这里简单地修改样式表或添加标识
+	pass
+
 # 关闭面板
-func close_panel():
-	# 发送关闭信号
+func _close_panel():
+	print("ItemCardDisplayPanel: 关闭面板")
 	panel_closed.emit()
-	# 释放资源
 	queue_free()
 
 # 关闭按钮点击处理
 func _on_close_button_pressed():
-	close_panel()
+	_close_panel()
 
 # 背景点击处理
 func _on_background_input(event):
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		# 点击背景时关闭面板
-		close_panel()
+		_close_panel()
 
 # 卡片点击处理
 func _on_card_clicked(card_id):
