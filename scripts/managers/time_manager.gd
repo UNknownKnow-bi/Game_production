@@ -122,6 +122,11 @@ func get_current_round() -> int:
 # 获取当前场景类型
 func get_current_scene_type() -> String:
 	return current_scene_type
+	
+# 向后兼容方法 - 始终返回false
+func get_settlement_status() -> bool:
+	print("警告：调用了已弃用的get_settlement_status方法")
+	return false
 
 
 

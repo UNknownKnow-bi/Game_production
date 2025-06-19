@@ -99,8 +99,7 @@ func collect_all_save_data() -> Dictionary:
 			"current_round": TimeManager.get_current_round(),
 			"current_scene_type": TimeManager.get_current_scene_type(),
 			"workday_round_count": TimeManager.workday_round_count,
-			"weekend_round_count": TimeManager.weekend_round_count,
-			"is_settlement_in_progress": TimeManager.get_settlement_status()
+			"weekend_round_count": TimeManager.weekend_round_count
 		}
 		print("GameSaveManager: 收集游戏进度数据 - 回合:", save_data.game_progress.current_round)
 	
@@ -218,7 +217,6 @@ func distribute_save_data(save_data: Dictionary) -> bool:
 		TimeManager.set_scene_type(progress_data.get("current_scene_type", "workday"))
 		TimeManager.workday_round_count = progress_data.get("workday_round_count", 0)
 		TimeManager.weekend_round_count = progress_data.get("weekend_round_count", 0)
-		TimeManager.is_settlement_in_progress = progress_data.get("is_settlement_in_progress", false)
 		print("GameSaveManager: 分发游戏进度数据 - 回合:", progress_data.get("current_round", 1))
 	
 	# 分发玩家属性数据

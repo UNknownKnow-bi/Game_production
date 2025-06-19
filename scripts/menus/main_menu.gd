@@ -323,7 +323,6 @@ func _reset_managers_to_initial_state():
 		TimeManager.current_scene_type = "workday"
 		TimeManager.workday_round_count = 0
 		TimeManager.weekend_round_count = 0
-		TimeManager.is_settlement_in_progress = false
 		print("MainMenu: TimeManager已重置")
 	
 	# 重置AttributeManager
