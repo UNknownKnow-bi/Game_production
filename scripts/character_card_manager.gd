@@ -156,4 +156,35 @@ func get_all_character_names() -> Array:
 	var names = []
 	for card_id in cards:
 		names.append(cards[card_id].card_name)
-	return names 
+	return names
+
+# ========== 存档序列化功能 ==========
+
+# 获取解锁的角色卡ID列表
+func get_unlocked_card_ids() -> Array:
+	var unlocked_cards = []
+	for card_id in cards:
+		var card = cards[card_id]
+		if card.is_unlocked_by_default:
+			unlocked_cards.append(card_id)
+	return unlocked_cards
+
+# 加载解锁状态（从存档数据恢复）
+func load_unlocked_cards(unlocked_card_ids: Array) -> void:
+	print("CharacterCardManager: 开始加载解锁状态")
+	
+	# 先将所有卡牌设为未解锁
+	for card_id in cards:
+		var card = cards[card_id]
+		card.is_unlocked_by_default = false
+	
+	# 根据存档数据恢复解锁状态
+	for card_id in unlocked_card_ids:
+		if cards.has(card_id):
+			var card = cards[card_id]
+			card.is_unlocked_by_default = true
+			print("CharacterCardManager: 恢复角色卡解锁状态 - ", card_id, " (", card.card_name, ")")
+		else:
+			print("CharacterCardManager: 警告 - 存档中的角色卡ID不存在: ", card_id)
+	
+	print("CharacterCardManager: 解锁状态加载完成 - 已解锁:", unlocked_card_ids.size(), "张") 

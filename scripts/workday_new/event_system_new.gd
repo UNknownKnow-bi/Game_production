@@ -180,9 +180,9 @@ func _on_events_updated():
 	print("事件已更新，检查是否需要刷新面板显示...")
 	
 	# 获取和显示各类事件数量以便调试
-	var character_events = event_manager.get_active_events("character")
-	var random_events = event_manager.get_active_events("random")
-	var daily_events = event_manager.get_active_events("daily")
+	var character_events = event_manager.get_active_events_by_category("character")
+	var random_events = event_manager.get_active_events_by_category("random")
+	var daily_events = event_manager.get_active_events_by_category("daily")
 	
 	print("活跃事件数量统计:")
 	print("  角色事件数量: ", character_events.size())
@@ -311,7 +311,7 @@ func update_event_panel(category: String, panel: EventPanel):
 	
 	print("✓ EventManager和面板验证通过")
 	
-	var active_events = event_manager.get_active_events(category)
+	var active_events = event_manager.get_active_events_by_category(category)
 	print("获取到的活跃事件数量: ", active_events.size())
 	
 	# 日常事件特定调试

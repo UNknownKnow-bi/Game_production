@@ -4,6 +4,10 @@ extends Node
 const CardDisplayPanelScene = preload("res://scenes/ui/card_display_panel.tscn")
 # 预加载情报卡展示面板场景
 const ItemCardDisplayPanelScene = preload("res://scenes/ui/item_card_display_panel.tscn")
+# 预加载情报卡获得提示弹窗场景
+const ItemCardRewardPopupScene = preload("res://scenes/ui/item_card_reward_popup.tscn")
+# 预加载玩家属性弹窗场景
+const PlayerAttributesPopupScene = preload("res://scenes/ui/player_attributes_popup.tscn")
 
 # 交互元素引用
 @onready var rabbit_icon = $"../RabbitIcon"
@@ -16,6 +20,8 @@ const ItemCardDisplayPanelScene = preload("res://scenes/ui/item_card_display_pan
 var card_display_panel = null
 # 情报卡展示面板引用
 var item_card_display_panel = null
+# 玩家属性弹窗引用
+var player_attributes_popup = null
 
 # 交互状态
 var is_rabbit_active = false
@@ -26,19 +32,24 @@ var is_card_others_active = false
 func _ready():
 	# 初始化UI控制器
 	print("UI控制器已初始化")
+	
+	# 连接情报卡获得通知
+	if AttributeManager:
+		AttributeManager.item_card_acquired_notification.connect(_on_item_card_acquired)
+		print("UI控制器: 已连接情报卡获得通知")
 
 # 处理Rabbit图标交互
 func handle_rabbit_interaction():
-	is_rabbit_active = !is_rabbit_active
-	print("Rabbit状态: ", is_rabbit_active)
+	print("Rabbit图标被点击 - 显示玩家属性弹窗")
 	
-	# 更新视觉效果
-	if is_rabbit_active:
-		rabbit_icon.modulate = Color(1.5, 1.5, 1.5, 1.0)
-	else:
-		rabbit_icon.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	# 显示玩家属性弹窗
+	show_player_attributes_popup()
 	
-	# 实现交互逻辑，例如显示特定菜单或面板
+	# 更新视觉效果（短暂高亮表示点击响应）
+	rabbit_icon.modulate = Color(1.5, 1.5, 1.5, 1.0)
+	# 使用Tween恢复原色
+	var tween = create_tween()
+	tween.tween_property(rabbit_icon, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.2)
 
 # 处理Beer图标交互
 func handle_beer_interaction():
@@ -193,8 +204,38 @@ func reset_all_interactions():
 	hide_card_display_panel()
 	# 关闭情报卡展示面板
 	hide_item_card_display_panel()
+	# 关闭玩家属性弹窗
+	hide_player_attributes_popup()
 	
 	print("已重置所有交互状态")
+
+# 处理情报卡获得通知
+func _on_item_card_acquired(card_instance: ItemCardInstanceData):
+	print("UI控制器: 接收到情报卡获得通知 - ", card_instance.get_card_name())
+	show_item_card_reward_popup(card_instance)
+
+# 显示情报卡获得提示弹窗
+func show_item_card_reward_popup(card_instance: ItemCardInstanceData):
+	if not card_instance:
+		printerr("UI控制器: 无效的情报卡实例")
+		return
+	
+	print("UI控制器: 显示情报卡获得弹窗 - ", card_instance.get_card_name())
+	
+	# 创建情报卡获得提示弹窗
+	var reward_popup = ItemCardRewardPopupScene.instantiate()
+	
+	# 获取UI层并添加弹窗
+	var ui_layer = get_parent()
+	ui_layer.add_child(reward_popup)
+	
+	# 连接弹窗关闭信号
+	reward_popup.popup_closed.connect(func(): 
+		print("UI控制器: 情报卡获得弹窗已关闭")
+	)
+	
+	# 显示弹窗
+	reward_popup.show_card_reward(card_instance)
 
 # 处理切换到物品卡面板信号
 func _on_switch_to_item_panel():
@@ -220,4 +261,31 @@ func _on_switch_to_character_panel():
 	# 显示角色卡面板
 	is_card_char_active = true
 	card_side_char.modulate = Color(1.3, 1.3, 1.3, 1.0)
-	show_card_display_panel() 
+	show_card_display_panel()
+
+# 显示玩家属性弹窗
+func show_player_attributes_popup():
+	# 如果弹窗已存在，直接显示
+	if player_attributes_popup != null and is_instance_valid(player_attributes_popup):
+		player_attributes_popup.show_popup()
+		return
+	
+	print("UI Controller: 创建玩家属性弹窗")
+	
+	# 创建玩家属性弹窗实例
+	player_attributes_popup = PlayerAttributesPopupScene.instantiate()
+	
+	# 获取UI层节点，添加到顶层
+	var ui_layer = get_parent()
+	ui_layer.add_child(player_attributes_popup)
+	
+	# 显示弹窗
+	player_attributes_popup.show_popup()
+	
+	print("UI Controller: 玩家属性弹窗已显示")
+
+# 隐藏玩家属性弹窗
+func hide_player_attributes_popup():
+	if player_attributes_popup != null and is_instance_valid(player_attributes_popup):
+		player_attributes_popup.hide_popup()
+		print("UI Controller: 玩家属性弹窗已隐藏") 

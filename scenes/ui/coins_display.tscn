@@ -1,0 +1,52 @@
+[gd_scene load_steps=4 format=3 uid="uid://dr1locthw2qwm"]
+
+[ext_resource type="Script" uid="uid://bk8yb7u6jenxj" path="res://scripts/ui/coins_display.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://cdu415fapl5ce" path="res://assets/ui/coins.png" id="2_coins_icon"]
+[ext_resource type="FontFile" uid="uid://cdja3eosvd0mn" path="res://assets/font/LEEEAFHEI-REGULAR.TTF" id="3_font"]
+
+[node name="CoinsDisplay" type="Control"]
+custom_minimum_size = Vector2(120, 40)
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_script")
+
+[node name="Background" type="Panel" parent="."]
+modulate = Color(1, 1, 1, 0.8)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 5.0
+offset_top = 5.0
+offset_right = -5.0
+offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="CoinIcon" type="TextureRect" parent="HBoxContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 4
+texture = ExtResource("2_coins_icon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CoinAmount" type="Label" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+theme_override_colors/font_color = Color(1, 0.843, 0, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 24
+text = "5"
+vertical_alignment = 1

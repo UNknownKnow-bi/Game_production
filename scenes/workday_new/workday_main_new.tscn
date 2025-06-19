@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://ckd4mgqatkxnd"]
+[gd_scene load_steps=19 format=3 uid="uid://ckd4mgqatkxnd"]
 
 [ext_resource type="Script" uid="uid://deijiry5htitf" path="res://scripts/workday_new/workday_main_new.gd" id="1_vr1x0"]
 [ext_resource type="Texture2D" uid="uid://pywkdfx8n3kj" path="res://assets/workday_main_scene/ui/background.png" id="2_qrrlw"]
@@ -17,6 +17,7 @@
 [ext_resource type="PackedScene" uid="uid://c78r0gghink4b" path="res://scenes/ui/card_draw_panel.tscn" id="13_drawui"]
 [ext_resource type="PackedScene" uid="uid://mxu2f3stt10q" path="res://scenes/ui/card_detail_panel.tscn" id="14_detailui"]
 [ext_resource type="PackedScene" uid="uid://bxm8k5n2vwqr8" path="res://scenes/ui/simple_warning_popup.tscn" id="15_warningui"]
+[ext_resource type="PackedScene" uid="uid://dr1locthw2qwm" path="res://scenes/ui/coins_display.tscn" id="16_coinsui"]
 
 [node name="WorkdayMain" type="Node2D"]
 script = ExtResource("1_vr1x0")
@@ -170,6 +171,12 @@ offset_bottom = -85.0
 
 [node name="UILayer" type="CanvasLayer" parent="."]
 layer = 10
+
+[node name="CoinsDisplay" parent="UILayer" instance=ExtResource("16_coinsui")]
+offset_left = 72.0
+offset_top = 72.0
+offset_right = 192.0
+offset_bottom = 112.0
 
 [node name="TimeDisplay" parent="UILayer" instance=ExtResource("11_timeui")]
 offset_left = 1520.0

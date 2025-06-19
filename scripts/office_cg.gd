@@ -429,7 +429,7 @@ func save_card_type(card_type: String):
 
 # 跳转到主游戏场景
 func proceed_to_main_game():
-	get_tree().change_scene_to_file("res://scenes/workday/workday_main.tscn")
+	get_tree().change_scene_to_file("res://scenes/workday_new/workday_main_new.tscn")
 
 # 加载用户数据
 func load_user_data() -> Dictionary:

@@ -9,6 +9,8 @@ const WeekendPlayerManager = preload("res://scripts/weekend/weekend_player_manag
 const CardDisplayPanelScene = preload("res://scenes/ui/card_display_panel.tscn")
 # 预加载ItemCardDisplayPanel场景
 const ItemCardDisplayPanelScene = preload("res://scenes/ui/item_card_display_panel.tscn")
+# 预加载情报卡获得提示弹窗场景
+const ItemCardRewardPopupScene = preload("res://scenes/ui/item_card_reward_popup.tscn")
 
 # 特权卡系统组件引用
 @onready var privilege_card_display = $UILayer/PrivilegeCardDisplay
@@ -47,6 +49,13 @@ var is_card_others_active = false
 var weekend_test_events: Array[GameEvent] = []
 
 func _ready():
+	print("Weekend Main: 开始初始化")
+	
+	# 确认场景切换完成
+	if TimeManager:
+		print("Weekend Main: 确认周末场景切换完成")
+		TimeManager.confirm_scene_switched()
+	
 	# 初始化玩家管理器
 	player_manager = WeekendPlayerManager.new()
 	player_manager.set_main_scene(self)
@@ -72,6 +81,14 @@ func _ready():
 	
 	_setup_daily_event_system()
 	_setup_weekend_event_system()
+	
+	# 初始化全局卡牌使用管理器
+	initialize_global_card_usage_manager()
+	
+	# 连接情报卡获得通知
+	if AttributeManager:
+		AttributeManager.item_card_acquired_notification.connect(_on_item_card_acquired)
+		print("Weekend Main: 已连接情报卡获得通知")
 	
 	print("Weekend Main: 周末场景已加载")
 
@@ -114,10 +131,10 @@ func _initialize_event_manager_state():
 	event_manager.update_available_events()
 	
 	# 验证各类别事件数量
-	var character_events = event_manager.get_active_events("character")
-	var random_events = event_manager.get_active_events("random")
-	var daily_events = event_manager.get_active_events("daily")
-	var ending_events = event_manager.get_active_events("ending")
+	var character_events = event_manager.get_active_events_by_category("character")
+	var random_events = event_manager.get_active_events_by_category("random")
+	var daily_events = event_manager.get_active_events_by_category("daily")
+	var ending_events = event_manager.get_active_events_by_category("ending")
 	
 	print("Weekend Main: 活跃事件统计:")
 	print("  人物事件:", character_events.size())
@@ -166,6 +183,12 @@ func _setup_privilege_card_system():
 		event_popup.popup_closed.connect(_on_event_popup_closed)
 		print("Weekend Main: 事件弹窗信号已连接")
 	
+	# 连接时间显示组件的回合结束信号
+	if time_display and time_display.has_signal("round_ended"):
+		if not time_display.round_ended.is_connected(_on_round_ended):
+			time_display.round_ended.connect(_on_round_ended)
+			print("Weekend Main: 连接回合结束信号成功")
+	
 	# 连接TimeManager信号
 	if TimeManager:
 		TimeManager.scene_type_changed.connect(_on_scene_type_changed)
@@ -189,14 +212,19 @@ func _setup_star_button():
 
 # 处理星形按钮点击事件
 func _on_star_button_pressed():
-	print("Weekend Main: 点击星形按钮，进入下一回合")
+	print("Weekend Main: 点击星形按钮，触发回合推进和检定流程")
 	
-	# 推进回合 - TimeManager会自动发射scene_type_changed信号进行场景切换
-	if TimeManager:
-		TimeManager.advance_round()
-		print("Weekend Main: 回合推进完成，等待TimeManager信号处理场景切换")
+	# 通过时间显示组件推进回合，这将触发round_ended信号进行检定处理
+	if time_display and time_display.has_method("advance_round"):
+		time_display.advance_round()
+		print("Weekend Main: 通过时间显示组件推进回合，等待检定流程")
 	else:
-		print("Weekend Main: 错误 - TimeManager不存在")
+		print("Weekend Main: 错误 - 时间显示组件不可用，回退到直接推进")
+		# 回退方案：直接调用TimeManager
+		if TimeManager:
+			TimeManager.advance_round()
+		else:
+			print("Weekend Main: 错误 - TimeManager也不存在")
 
 # 处理星形按钮鼠标悬停事件
 func _on_star_button_mouse_entered():
@@ -316,7 +344,7 @@ func _show_simple_warning(title: String = "提示", content: String = "必须抽
 	if simple_warning_popup:
 		simple_warning_popup.show_warning(title, content)
 
-# 处理场景类型变化
+# 处理场景类型变化信号
 func _on_scene_type_changed(new_scene_type: String):
 	print("Weekend Main: 场景类型变化到 ", new_scene_type)
 	
@@ -811,3 +839,171 @@ func _on_switch_to_character_panel():
 	is_card_char_active = true
 	card_side_char.modulate = Color(1.3, 1.3, 1.3, 1.0)
 	show_card_display()
+
+# 处理回合结束事件
+func _on_round_ended(new_round: int):
+	print("Weekend Main: 回合结束 - 当前回合:", new_round)
+	
+	# 收集需要检定的事件
+	var events_to_check = []
+	if EventManager:
+		# 检查延迟检定事件
+		if TimeManager:
+			var current_scene_type = TimeManager.get_current_scene_type()
+			EventManager.process_delayed_checks(new_round, current_scene_type)
+		
+		# 收集待检定事件
+		events_to_check = EventManager.collect_events_for_checking()
+	
+	if events_to_check.is_empty():
+		# 没有检定，直接推进回合（会触发场景切换和存档）
+		print("Weekend Main: 没有事件需要检定，直接推进回合")
+		if TimeManager:
+			TimeManager.advance_round()
+	else:
+		# 有检定，先处理检定，检定完成后再推进回合
+		print("Weekend Main: 发现 ", events_to_check.size(), " 个事件需要检定")
+		start_event_check_settlement(events_to_check, new_round)
+
+
+
+# 启动事件检定结算流程
+func start_event_check_settlement(events_to_check: Array, new_round: int):
+	print("Weekend Main: 启动事件检定结算流程")
+	
+	# 创建检定结算界面（如果不存在）
+	if not has_node("UILayer/EventCheckSettlement"):
+		var settlement_scene = preload("res://scenes/workday_new/components/event_check_settlement.tscn")
+		var settlement_instance = settlement_scene.instantiate()
+		settlement_instance.name = "EventCheckSettlement"
+		
+		# 添加到UI层
+		var ui_layer = get_node("UILayer")
+		if ui_layer:
+			ui_layer.add_child(settlement_instance)
+			
+			# 连接完成信号
+			settlement_instance.settlement_completed.connect(_on_settlement_completed.bind(new_round))
+			
+			print("Weekend Main: 事件检定结算界面已创建")
+		else:
+			print("Weekend Main: 错误 - UILayer未找到")
+			# 如果创建失败，直接推进回合
+			if TimeManager:
+				TimeManager.advance_round()
+			return
+	
+	# 获取检定结算界面
+	var settlement_ui = get_node("UILayer/EventCheckSettlement")
+	if settlement_ui:
+		# 开始检定结算
+		settlement_ui.start_settlement(events_to_check)
+	else:
+		print("Weekend Main: 错误 - 无法创建检定结算界面")
+		# 如果失败，直接推进回合
+		if TimeManager:
+			TimeManager.advance_round()
+
+# 检定结算完成回调
+func _on_settlement_completed(results: Array, new_round: int):
+	print("Weekend Main: 事件检定结算完成，结果数量: ", results.size())
+	
+	# 处理检定结果
+	for result_data in results:
+		var event = result_data.event
+		var check_result = result_data.result
+		
+		if check_result:
+			print("Weekend Main: 事件 ", event.event_name, " 检定结果: ", "成功" if check_result.is_successful else "失败")
+	
+	# 清理检定界面
+	var settlement_ui = get_node_or_null("UILayer/EventCheckSettlement")
+	if settlement_ui:
+		settlement_ui.queue_free()
+	
+	# 等待界面清理完成，然后推进回合
+	await get_tree().process_frame
+	
+	# 推进回合（会触发场景切换和存档）
+	if TimeManager:
+		print("Weekend Main: 检定完成，推进回合")
+		TimeManager.advance_round()
+
+
+
+# 初始化全局卡牌使用管理器
+func initialize_global_card_usage_manager():
+	var global_usage_manager = get_node_or_null("/root/GlobalCardUsageManager")
+	if not global_usage_manager:
+		print("Weekend Main: 警告 - GlobalCardUsageManager未初始化")
+		return
+	
+	# 连接时间系统的回合切换信号
+	if time_display and time_display.has_signal("round_ended"):
+		if not time_display.round_ended.is_connected(_on_round_ended):
+			time_display.round_ended.connect(_on_round_ended)
+			print("Weekend Main: 连接回合结束信号成功")
+	
+	# 连接全局使用管理器的信号
+	if not global_usage_manager.round_usage_reset.is_connected(_on_round_usage_reset):
+		global_usage_manager.round_usage_reset.connect(_on_round_usage_reset)
+		print("Weekend Main: 连接全局使用状态重置信号成功")
+	
+	print("Weekend Main: 全局卡牌使用管理器初始化完成")
+
+# 处理全局使用状态重置完成
+func _on_round_usage_reset():
+	print("Weekend Main: 全局卡牌使用状态重置完成")
+	
+	# 刷新活跃的卡牌面板
+	_refresh_active_card_panels()
+
+# 刷新活跃的卡牌面板状态
+func _refresh_active_card_panels():
+	var ui_layer = get_node_or_null("UILayer")
+	if not ui_layer:
+		return
+	
+	# 查找并刷新卡牌显示面板
+	var card_display_panel = ui_layer.find_child("*CardDisplayPanel*", true, false)
+	if card_display_panel and card_display_panel.has_method("refresh_busy_states"):
+		card_display_panel.refresh_busy_states()
+		print("Weekend Main: 卡牌显示面板忙碌状态已刷新")
+	
+	var item_card_display_panel = ui_layer.find_child("*ItemCardDisplayPanel*", true, false)
+	if item_card_display_panel and item_card_display_panel.has_method("refresh_busy_states"):
+		item_card_display_panel.refresh_busy_states()
+		print("Weekend Main: 情报卡显示面板忙碌状态已刷新")
+	
+	var card_detail_panel = ui_layer.find_child("*CardDetailPanel*", true, false)
+	if card_detail_panel and card_detail_panel.has_method("refresh_busy_states"):
+		card_detail_panel.refresh_busy_states()
+		print("Weekend Main: 特权卡详情面板忙碌状态已刷新")
+
+# 处理情报卡获得通知
+func _on_item_card_acquired(card_instance: ItemCardInstanceData):
+	print("Weekend Main: 接收到情报卡获得通知 - ", card_instance.get_card_name())
+	show_item_card_reward_popup(card_instance)
+
+# 显示情报卡获得提示弹窗
+func show_item_card_reward_popup(card_instance: ItemCardInstanceData):
+	if not card_instance:
+		printerr("Weekend Main: 无效的情报卡实例")
+		return
+	
+	print("Weekend Main: 显示情报卡获得弹窗 - ", card_instance.get_card_name())
+	
+	# 创建情报卡获得提示弹窗
+	var reward_popup = ItemCardRewardPopupScene.instantiate()
+	
+	# 获取UI层并添加弹窗
+	var ui_layer = $UILayer
+	ui_layer.add_child(reward_popup)
+	
+	# 连接弹窗关闭信号
+	reward_popup.popup_closed.connect(func(): 
+		print("Weekend Main: 情报卡获得弹窗已关闭")
+	)
+	
+	# 显示弹窗
+	reward_popup.show_card_reward(card_instance)

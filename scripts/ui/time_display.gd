@@ -3,6 +3,8 @@ extends Control
 # TimeDisplay - 时间显示组件
 # 显示当前回合数和场景类型
 
+signal round_ended(new_round: int)
+
 @onready var round_label = $VBoxContainer/RoundLabel
 @onready var scene_type_label = $VBoxContainer/SceneTypeLabel
 @onready var task_countdown_label = $VBoxContainer/TaskCountdownLabel
@@ -71,6 +73,10 @@ func _on_cards_updated():
 func _on_round_changed(new_round: int):
 	print("Time Display: 回合更新到 ", new_round)
 	update_display()
+	
+	# 发出round_ended信号，触发检定流程
+	print("Time Display: 发出round_ended信号 - ", new_round)
+	round_ended.emit(new_round)
 
 # 场景类型变化信号处理
 func _on_scene_type_changed(new_scene_type: String):

@@ -110,7 +110,7 @@ func update_all_hotzones():
 		return
 	
 	# 获取可用的日常事件
-	var daily_events = event_manager.get_active_events("daily")
+	var daily_events = event_manager.get_active_events_by_category("daily")
 	print("获取到日常事件数量: ", daily_events.size())
 	
 	if daily_events.is_empty():

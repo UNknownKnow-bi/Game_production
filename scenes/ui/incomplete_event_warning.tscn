@@ -1,0 +1,84 @@
+[gd_scene load_steps=3 format=3 uid="uid://bhvo0rxtxnce0"]
+
+[ext_resource type="Script" uid="uid://b0bjph6i5cfkg" path="res://scripts/ui/incomplete_event_warning.gd" id="1_script"]
+[ext_resource type="FontFile" uid="uid://cdja3eosvd0mn" path="res://assets/font/LEEEAFHEI-REGULAR.TTF" id="2_font"]
+
+[node name="IncompleteEventWarning" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.5)
+
+[node name="WarningPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -150.0
+offset_right = 300.0
+offset_bottom = 150.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="WarningPanel"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="TitleLabel" type="Label" parent="WarningPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.2, 0.2, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 36
+text = "事件未完成"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="WarningPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="ContentLabel" type="Label" parent="WarningPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 24
+text = "请在必需的卡槽中放置卡牌后再确认完成事件"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="MissingSlotsList" type="VBoxContainer" parent="WarningPanel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="ButtonsContainer" type="HBoxContainer" parent="WarningPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="ConfirmButton" type="Button" parent="WarningPanel/VBoxContainer/ButtonsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "我知道了"
+
+[node name="CloseButton" type="Button" parent="WarningPanel/VBoxContainer/ButtonsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "关闭"

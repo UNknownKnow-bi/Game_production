@@ -1,6 +1,9 @@
 class_name ItemCard
 extends Control
 
+# 信号定义
+signal card_clicked()
+
 # 节点引用
 @onready var card_base: TextureRect = $CardBase
 @onready var item_image: TextureRect = $ItemImage
@@ -14,18 +17,40 @@ var card_data: ItemCardData
 
 # 初始化卡片
 func _ready():
-	print("=== ItemCard场景初始化开始 ===")
-	print("ItemCard: 场景大小 - ", size)
-	print("ItemCard: 节点引用检查:")
-	print("  - CardBase: ", card_base != null)
-	print("  - ItemImage: ", item_image != null)
-	print("  - TextLayer: ", text_layer != null)
-	print("  - CardName: ", card_name != null)
-	print("  - AttributesLabel: ", attributes_label != null)
-	print("  - TagsLabel: ", tags_label != null)
+	print("ItemCard: _ready()开始执行")
+	print("ItemCard: 实例ID - ", get_instance_id())
 	
-	# 等待真实数据，不使用测试数据
-	print("ItemCard: 等待真实卡片数据...")
+	# 确保信号正确定义
+	print("ItemCard: 检查card_clicked信号定义...")
+	if has_signal("card_clicked"):
+		print("ItemCard: ✓ card_clicked信号已正确定义")
+	else:
+		print("ItemCard: ✗ card_clicked信号定义失败")
+	
+	# 检查ClickButton是否存在
+	var click_button = get_node_or_null("ClickButton")
+	if click_button:
+		print("ItemCard: ✓ ClickButton节点存在")
+		print("ItemCard: ClickButton属性:")
+		print("  - 可见: ", click_button.visible)
+		print("  - 启用: ", not click_button.disabled)
+		print("  - 鼠标过滤: ", click_button.mouse_filter)
+		print("  - 大小: ", click_button.size)
+		print("  - 位置: ", click_button.position)
+		
+		# 确认信号连接
+		if not click_button.pressed.is_connected(_on_card_clicked):
+			var connection_result = click_button.pressed.connect(_on_card_clicked)
+			if connection_result == OK:
+				print("ItemCard: ✓ ClickButton.pressed信号连接成功")
+			else:
+				print("ItemCard: ✗ ClickButton.pressed信号连接失败，错误码:", connection_result)
+		else:
+			print("ItemCard: ClickButton.pressed信号已连接")
+	else:
+		print("ItemCard: ✗ ClickButton节点不存在")
+	
+	print("ItemCard: _ready()执行完成")
 
 # 测试函数：显示指定ID的卡片
 func test_display_card(card_id: int):
@@ -164,4 +189,30 @@ func set_card_size(new_size: Vector2):
 	if card_base:
 		card_base.size = design_size
 	
-	print("ItemCard: 尺寸保护 - 锁定为设计尺寸: ", design_size) 
+	print("ItemCard: 尺寸保护 - 锁定为设计尺寸: ", design_size)
+
+# 处理卡片点击
+func _on_card_clicked():
+	print("ItemCard: === 卡片点击事件触发 ===")
+	print("ItemCard: 实例ID - ", get_instance_id())
+	print("ItemCard: 卡片数据 - ", card_data.card_name if card_data else "无数据")
+	print("ItemCard: 准备发射card_clicked信号...")
+	
+	# 检查信号连接状态
+	var connections = card_clicked.get_connections()
+	print("ItemCard: card_clicked信号连接状态:")
+	print("  - 连接数量: ", connections.size())
+	for i in range(connections.size()):
+		var conn = connections[i]
+		print("    连接", i+1, ": ", conn.callable.get_object(), " -> ", conn.callable.get_method())
+	
+	if connections.size() > 0:
+		print("ItemCard: ✓ 有接收器，发射信号")
+		card_clicked.emit()
+		print("ItemCard: ✓ card_clicked信号已发射")
+	else:
+		print("ItemCard: ✗ 无接收器连接，但仍发射信号")
+		card_clicked.emit()
+		print("ItemCard: ✓ card_clicked信号已发射（无接收器）")
+	
+	print("ItemCard: === 卡片点击事件处理完成 ===") 

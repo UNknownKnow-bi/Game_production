@@ -1,0 +1,146 @@
+[gd_scene load_steps=5 format=3 uid="uid://dh16vvmyd3evb"]
+
+[ext_resource type="Script" uid="uid://dklv3xl23c7ku" path="res://scripts/workday_new/components/event_check_settlement.gd" id="1_x8k2f"]
+[ext_resource type="Texture2D" uid="uid://cj1qx703nww1v" path="res://assets/workday_new/ui/events/event_popup_background.png" id="2_background"]
+[ext_resource type="FontFile" uid="uid://cdja3eosvd0mn" path="res://assets/font/LEEEAFHEI-REGULAR.TTF" id="3_font"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_1"]
+texture = ExtResource("2_background")
+
+[node name="root" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_x8k2f")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.588235)
+
+[node name="SettlementPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -936.0
+offset_top = -522.0
+offset_right = 942.0
+offset_bottom = 528.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_1")
+
+[node name="HSplitContainer" type="HSplitContainer" parent="SettlementPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 120.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+split_offset = 100
+
+[node name="LeftPanel" type="Control" parent="SettlementPanel/HSplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.6
+
+[node name="EventTitleLabel" type="Label" parent="SettlementPanel/HSplitContainer/LeftPanel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -554.0
+offset_top = 133.0
+offset_right = 33.0
+offset_bottom = 203.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 40
+text = "事件检定结算"
+vertical_alignment = 1
+
+[node name="ContentTextLabel" type="RichTextLabel" parent="SettlementPanel/HSplitContainer/LeftPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 44.0
+offset_top = 233.0
+offset_right = -153.0
+offset_bottom = -200.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/default_color = Color(0, 0, 0, 1)
+theme_override_constants/line_separation = 9
+theme_override_fonts/normal_font = ExtResource("3_font")
+theme_override_font_sizes/normal_font_size = 25
+bbcode_enabled = true
+text = "准备进行事件检定..."
+fit_content = true
+
+[node name="ContinueButton" type="Button" parent="SettlementPanel/HSplitContainer/LeftPanel"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -50.0
+offset_top = -84.0
+offset_right = 50.0
+offset_bottom = -34.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 20
+text = "继续"
+
+[node name="RightPanel" type="Control" parent="SettlementPanel/HSplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.4
+
+[node name="RightContainer" type="VBoxContainer" parent="SettlementPanel/HSplitContainer/RightPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 112.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="CheckResultsTitle" type="Label" parent="SettlementPanel/HSplitContainer/RightPanel/RightContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 30
+text = "检定结果"
+horizontal_alignment = 1
+
+[node name="CheckGridContainer" type="GridContainer" parent="SettlementPanel/HSplitContainer/RightPanel/RightContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 3
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 10

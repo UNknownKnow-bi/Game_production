@@ -58,7 +58,7 @@ theme_override_constants/separation = 5
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 25
 text = "卡槽描述"
 autowrap_mode = 3
 
@@ -66,7 +66,7 @@ autowrap_mode = 3
 layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 0.4, 0.4, 1)
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 18
 text = "允许: 角色卡、情报卡"
 autowrap_mode = 3
 
@@ -74,7 +74,7 @@ autowrap_mode = 3
 layout_mode = 2
 theme_override_colors/font_color = Color(0.2, 0.6, 0.2, 1)
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 18
 text = "状态: 空"
 
 [node name="RightSection" type="Control" parent="ContentContainer"]
@@ -106,7 +106,6 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="CardImage" type="TextureRect" parent="ContentContainer/RightSection/CardPreview"]
-visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -118,7 +117,6 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="CharacterCardContainer" type="Control" parent="ContentContainer/RightSection/CardPreview"]
-visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -128,16 +126,17 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="RemoveButton" type="Button" parent="ContentContainer/RightSection/CardPreview"]
-visible = false
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -25.0
-offset_bottom = 25.0
+offset_left = -18.0
+offset_top = -4.0
+offset_right = 7.0
+offset_bottom = 24.0
 grow_horizontal = 0
 theme_override_font_sizes/font_size = 14
-text = "✕"
+text = "❌"
 flat = true
 
 [node name="HighlightBorder" type="ColorRect" parent="."]

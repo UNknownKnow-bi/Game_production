@@ -1,0 +1,218 @@
+[gd_scene load_steps=5 format=3 uid="uid://b8jk7lm2oapqr"]
+
+[ext_resource type="Script" uid="uid://gaf2hyp3a5gq" path="res://scripts/ui/player_attributes_popup.gd" id="1_abc123"]
+[ext_resource type="FontFile" uid="uid://cdja3eosvd0mn" path="res://assets/font/LEEEAFHEI-REGULAR.TTF" id="2_def456"]
+[ext_resource type="Texture2D" uid="uid://ca6ee835aq3oj" path="res://assets/cards/attribute/overall_attribute_display.png" id="3_background"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_bg"]
+texture = ExtResource("3_background")
+
+[node name="PlayerAttributesPopup" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_abc123")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0)
+
+[node name="PopupPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -753.0
+offset_top = -66.0
+offset_right = -90.0
+offset_bottom = 283.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_bg")
+
+[node name="MainControl" type="Control" parent="PopupPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -76.0
+grow_horizontal = 2
+grow_vertical = 2
+metadata/_edit_lock_ = true
+
+[node name="TitleLabel" type="Label" parent="PopupPanel/MainControl"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -99.5
+offset_right = 100.5
+offset_bottom = 35.0
+grow_horizontal = 2
+theme_override_fonts/font = ExtResource("2_def456")
+theme_override_font_sizes/font_size = 32
+text = "人生属性"
+horizontal_alignment = 1
+
+[node name="CloseButton" type="Button" parent="PopupPanel/MainControl"]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -60.0
+offset_right = -20.0
+offset_bottom = 40.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 24
+text = "×"
+
+[node name="PowerIcon" type="TextureRect" parent="PopupPanel/MainControl"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.1
+anchor_top = 0.25
+anchor_right = 0.1
+anchor_bottom = 0.25
+offset_top = -32.0
+offset_right = 64.0
+offset_bottom = 32.0
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PowerLabel" type="Label" parent="PopupPanel/MainControl"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.3
+anchor_top = 0.25
+anchor_right = 0.425
+anchor_bottom = 0.348
+offset_left = 0.0999908
+offset_top = -4.25
+offset_right = 0.225006
+offset_bottom = -0.0440063
+theme_override_fonts/font = ExtResource("2_def456")
+theme_override_font_sizes/font_size = 28
+text = "权势"
+
+[node name="PowerValue" type="Label" parent="PopupPanel/MainControl"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.456
+anchor_top = 0.25
+anchor_right = 0.556
+anchor_bottom = 0.348
+offset_left = -0.0880432
+offset_top = -4.25
+offset_right = -0.0880432
+offset_bottom = -4.04401
+theme_override_colors/font_color = Color(0.2, 0.6, 0.2, 1)
+theme_override_fonts/font = ExtResource("2_def456")
+theme_override_font_sizes/font_size = 24
+text = "1"
+
+[node name="ReputationIcon" type="TextureRect" parent="PopupPanel/MainControl"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.1
+anchor_top = 0.5
+anchor_right = 0.1
+anchor_bottom = 0.5
+offset_top = -32.0
+offset_right = 64.0
+offset_bottom = 32.0
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ReputationLabel" type="Label" parent="PopupPanel/MainControl"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.3
+anchor_top = 0.5
+anchor_right = 0.413
+anchor_bottom = 0.593
+offset_left = 0.0999908
+offset_top = -5.5
+offset_right = -0.299011
+offset_bottom = -0.029007
+theme_override_fonts/font = ExtResource("2_def456")
+theme_override_font_sizes/font_size = 28
+text = "声望"
+
+[node name="ReputationValue" type="Label" parent="PopupPanel/MainControl"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.456
+anchor_top = 0.5
+anchor_right = 0.556
+anchor_bottom = 0.577
+offset_left = -0.0880432
+offset_top = -5.5
+offset_right = -0.0880432
+offset_bottom = 0.0189972
+theme_override_colors/font_color = Color(0.2, 0.6, 0.2, 1)
+theme_override_fonts/font = ExtResource("2_def456")
+theme_override_font_sizes/font_size = 24
+text = "1"
+
+[node name="PietyIcon" type="TextureRect" parent="PopupPanel/MainControl"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.1
+anchor_top = 0.75
+anchor_right = 0.1
+anchor_bottom = 0.75
+offset_top = -32.0
+offset_right = 64.0
+offset_bottom = 32.0
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PietyLabel" type="Label" parent="PopupPanel/MainControl"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.3
+anchor_top = 0.75
+anchor_right = 0.413
+anchor_bottom = 0.858
+offset_left = 0.0999908
+offset_top = -1.75
+offset_right = -0.299011
+offset_bottom = -0.0740051
+theme_override_fonts/font = ExtResource("2_def456")
+theme_override_font_sizes/font_size = 28
+text = "虔信"
+
+[node name="PietyValue" type="Label" parent="PopupPanel/MainControl"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.456
+anchor_top = 0.75
+anchor_right = 0.556
+anchor_bottom = 0.842
+offset_left = -0.0880432
+offset_top = -1.75
+offset_right = -0.0880432
+offset_bottom = -0.0260162
+theme_override_colors/font_color = Color(0.2, 0.6, 0.2, 1)
+theme_override_fonts/font = ExtResource("2_def456")
+theme_override_font_sizes/font_size = 24
+text = "1"
+
+[connection signal="pressed" from="PopupPanel/MainControl/CloseButton" to="." method="_on_close_button_pressed"]

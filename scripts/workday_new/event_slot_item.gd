@@ -19,6 +19,7 @@ const CharacterCardScene = preload("res://scenes/character_card.tscn")
 @onready var character_card_container = $ContentContainer/RightSection/CardPreview/CharacterCardContainer
 @onready var remove_button = $ContentContainer/RightSection/CardPreview/RemoveButton
 @onready var highlight_border = $HighlightBorder
+@onready var coin_amount_label: Label
 
 # 数据
 var slot_data: EventSlotData
@@ -86,6 +87,8 @@ func update_card_status():
 			# 显示完整的CharacterCard
 			card_image.visible = false
 			character_card_container.visible = true
+			if coin_amount_label:
+				coin_amount_label.visible = false
 			
 			# 获取角色卡数据并加载
 			var character_data = get_character_card_data(card_id)
@@ -93,10 +96,21 @@ func update_card_status():
 				load_character_card(character_data)
 			else:
 				print("EventSlotItem: 未找到角色卡数据 - ", card_id)
+		elif card_type == "金币卡":
+			# 显示金币卡专用界面
+			character_card_container.visible = false
+			card_image.visible = true
+			load_card_image()
+			
+			# 创建或更新金币数量标签
+			create_coin_amount_label()
+			update_coin_amount_display()
 		else:
 			# 显示普通卡牌图片
 			character_card_container.visible = false
 			card_image.visible = true
+			if coin_amount_label:
+				coin_amount_label.visible = false
 			load_card_image()
 	else:
 		# 无卡牌放置
@@ -110,6 +124,8 @@ func update_card_status():
 		card_image.visible = false
 		character_card_container.visible = false
 		remove_button.visible = false
+		if coin_amount_label:
+			coin_amount_label.visible = false
 		
 		# 清理CharacterCard实例
 		destroy_character_card_instance()
@@ -146,6 +162,8 @@ func get_card_image_path(card_type: String, card_id: String) -> String:
 			return "res://assets/workday_new/ui/card_icons/item/" + card_id + ".png"
 		"特权卡":
 			return get_privilege_card_image_path(card_id)
+		"金币卡":
+			return "res://assets/ui/coins.png"
 		_:
 			return ""
 
@@ -502,4 +520,67 @@ func load_character_card(card_data: CharacterCardData):
 	# 设置卡片数据
 	if character_card_instance:
 		character_card_instance.set_card_data(card_data)
-		print("EventSlotItem: 加载角色卡 - ", card_data.card_name) 
+		print("EventSlotItem: 加载角色卡 - ", card_data.card_name)
+
+# 创建金币数量标签
+func create_coin_amount_label():
+	if coin_amount_label and is_instance_valid(coin_amount_label):
+		return  # 标签已存在
+	
+	# 创建新的标签节点
+	coin_amount_label = Label.new()
+	coin_amount_label.name = "CoinAmountLabel"
+	
+	# 设置标签样式
+	coin_amount_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	coin_amount_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+	
+	# 设置字体和颜色
+	var font = load("res://assets/font/LEEEAFHEI-REGULAR.TTF")
+	if font:
+		coin_amount_label.add_theme_font_override("font", font)
+	coin_amount_label.add_theme_font_size_override("font_size", 18)
+	coin_amount_label.add_theme_color_override("font_color", Color(1, 0.843, 0, 1))  # 金色
+	
+	# 设置位置和大小
+	coin_amount_label.anchors_preset = Control.PRESET_BOTTOM_RIGHT
+	coin_amount_label.offset_left = -40
+	coin_amount_label.offset_top = -25
+	coin_amount_label.offset_right = -5
+	coin_amount_label.offset_bottom = -5
+	
+	# 添加到CardPreview容器
+	var card_preview = $ContentContainer/RightSection/CardPreview
+	if card_preview:
+		card_preview.add_child(coin_amount_label)
+		print("EventSlotItem: 创建金币数量标签")
+
+# 更新金币数量显示
+func update_coin_amount_display():
+	if not coin_amount_label or not is_instance_valid(coin_amount_label):
+		return
+	
+	var required_amount = get_required_coin_amount()
+	if required_amount > 0:
+		coin_amount_label.text = "x" + str(required_amount)
+		coin_amount_label.visible = true
+		print("EventSlotItem: 更新金币数量显示 - x", required_amount)
+	else:
+		coin_amount_label.visible = false
+
+# 获取所需金币数量
+func get_required_coin_amount() -> int:
+	if not slot_data or not slot_data.has_card_placed():
+		return 0
+	
+	if slot_data.placed_card_type != "金币卡":
+		return 0
+	
+	# 从specific_card_json中获取金币数量要求
+	var requirements = slot_data.get_specific_card_requirements()
+	if requirements.has("金币卡") and requirements["金币卡"] is Array:
+		var amounts = requirements["金币卡"]
+		if amounts.size() > 0:
+			return amounts[0].to_int()
+	
+	return 0 

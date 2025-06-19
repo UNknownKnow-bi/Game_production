@@ -99,12 +99,21 @@ func is_specific_card_valid(card_type: String, card_id: String, card_data = null
 			else:
 				return card_type_to_check == required_cards
 		
+		# 对于金币卡，验证数量是否匹配
+		elif card_type == "金币卡":
+			print("EventSlotData: 金币卡验证 - 卡牌ID:", card_id, " 要求:", required_cards)
+			if required_cards is Array:
+				return card_id in required_cards
+			else:
+				return card_id == required_cards
+		
 		# 对于其他卡牌类型，使用card_id进行验证
-		print("EventSlotData: 普通卡牌验证 - 卡牌ID:", card_id, " 是否在要求中:", card_id in required_cards)
-		if required_cards is Array:
-			return card_id in required_cards
 		else:
-			return card_id == required_cards
+			print("EventSlotData: 普通卡牌验证 - 卡牌ID:", card_id, " 是否在要求中:", card_id in required_cards)
+			if required_cards is Array:
+				return card_id in required_cards
+			else:
+				return card_id == required_cards
 	
 	print("EventSlotData: 卡牌类型不在要求列表中，验证通过")
 	return true
@@ -112,6 +121,12 @@ func is_specific_card_valid(card_type: String, card_id: String, card_data = null
 # 放置卡牌
 func place_card(card_type: String, card_id: String, card_data = null) -> bool:
 	print("EventSlotData: 尝试放置卡牌 - 类型:", card_type, " ID:", card_id)
+	
+	# 检查是否为替换操作
+	if has_card_placed():
+		print("EventSlotData: 检测到卡槽替换操作 - 当前卡牌:", placed_card_type, "[", placed_card_id, "] -> 新卡牌:", card_type, "[", card_id, "]")
+	else:
+		print("EventSlotData: 检测到新卡牌放置操作 - 卡槽为空，放置:", card_type, "[", card_id, "]")
 	
 	if not is_card_type_allowed(card_type):
 		print("EventSlotData: 卡牌类型不被允许: ", card_type)
@@ -146,26 +161,117 @@ func get_status_text() -> String:
 
 # 获取属性贡献
 func get_attribute_contribution() -> Dictionary:
+	print("EventSlotData: 开始计算属性贡献 - 卡槽", slot_id)
+	print("EventSlotData: has_card_placed:", has_card_placed())
+	print("EventSlotData: contributes_to_check:", contributes_to_check)
+	
 	if not has_card_placed() or not contributes_to_check:
+		print("EventSlotData: 卡槽不参与检定或无卡牌，返回空贡献")
 		return {}
 	
 	var contribution = {}
 	
 	# 获取卡牌本身的属性
+	print("EventSlotData: placed_card_data状态:", placed_card_data != null)
 	if placed_card_data:
+		print("EventSlotData: placed_card_data类型:", typeof(placed_card_data))
+		print("EventSlotData: 检查get_attributes方法:", placed_card_data.has_method("get_attributes"))
+		
 		if placed_card_data.has_method("get_attributes"):
 			var card_attributes = placed_card_data.get_attributes()
+			print("EventSlotData: 卡牌属性获取成功:", card_attributes)
 			for attr_name in card_attributes:
 				contribution[attr_name] = contribution.get(attr_name, 0) + card_attributes[attr_name]
+		else:
+			print("EventSlotData: 卡牌对象缺少get_attributes方法，尝试fallback")
+			# Fallback: 直接从管理器获取卡牌属性
+			var fallback_attributes = _get_card_attributes_fallback()
+			if not fallback_attributes.is_empty():
+				print("EventSlotData: Fallback属性获取成功:", fallback_attributes)
+				for attr_name in fallback_attributes:
+					contribution[attr_name] = contribution.get(attr_name, 0) + fallback_attributes[attr_name]
+			else:
+				print("EventSlotData: Fallback属性获取失败")
+	else:
+		print("EventSlotData: placed_card_data为null，尝试fallback")
+		# Fallback: 直接从管理器获取卡牌属性
+		var fallback_attributes = _get_card_attributes_fallback()
+		if not fallback_attributes.is_empty():
+			print("EventSlotData: Fallback属性获取成功:", fallback_attributes)
+			for attr_name in fallback_attributes:
+				contribution[attr_name] = contribution.get(attr_name, 0) + fallback_attributes[attr_name]
+		else:
+			print("EventSlotData: Fallback属性获取失败")
 	
 	# 应用效果修正器
 	var modifier = get_effect_modifier()
 	if modifier.has("attribute_bonus"):
 		var bonus = modifier["attribute_bonus"]
+		print("EventSlotData: 应用效果修正器:", bonus)
 		for attr_name in bonus:
 			contribution[attr_name] = contribution.get(attr_name, 0) + bonus[attr_name]
 	
+	print("EventSlotData: 最终属性贡献:", contribution)
 	return contribution
+
+# Fallback方法：直接从管理器获取卡牌属性
+func _get_card_attributes_fallback() -> Dictionary:
+	if not has_card_placed():
+		return {}
+	
+	print("EventSlotData: Fallback - 卡牌类型:", placed_card_type, " ID:", placed_card_id)
+	
+	# 卡牌类型映射：将中文类型名转换为英文标识符
+	var type_mapping = {
+		"特权卡": "privilege",
+		"情报卡": "item", 
+		"角色卡": "character"
+	}
+	
+	var mapped_type = type_mapping.get(placed_card_type, placed_card_type)
+	var card_id_int = placed_card_id.to_int()
+	
+	var attributes = {
+		"social": 0,
+		"resistance": 0,
+		"innovation": 0,
+		"execution": 0,
+		"physical": 0
+	}
+	
+	match mapped_type:
+		"character":
+			# 从CharacterCardManager获取人物卡属性
+			if CharacterCardManager:
+				var card_data = CharacterCardManager.get_card_by_id(placed_card_id)
+				if card_data and card_data.has_method("get_attributes"):
+					attributes = card_data.get_attributes()
+					print("EventSlotData: Fallback - 角色卡属性获取成功:", attributes)
+				else:
+					print("EventSlotData: Fallback - 角色卡数据未找到或无get_attributes方法")
+			else:
+				print("EventSlotData: Fallback - CharacterCardManager未找到")
+		
+		"item":
+			# 从ItemCardManager获取情报卡属性
+			if ItemCardManager:
+				var card_data = ItemCardManager.get_card_by_id(card_id_int)
+				if card_data and card_data.has_method("get_attributes"):
+					attributes = card_data.get_attributes()
+					print("EventSlotData: Fallback - 情报卡属性获取成功:", attributes)
+				else:
+					print("EventSlotData: Fallback - 情报卡数据未找到或无get_attributes方法")
+			else:
+				print("EventSlotData: Fallback - ItemCardManager未找到")
+		
+		"privilege":
+			# 特权卡不提供属性贡献
+			print("EventSlotData: Fallback - 特权卡不提供属性贡献")
+		
+		_:
+			print("EventSlotData: Fallback - 未知的卡牌类型:", placed_card_type)
+	
+	return attributes
 
 # 验证数据完整性
 func validate() -> bool:

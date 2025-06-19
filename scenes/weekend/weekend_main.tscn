@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://bqxvn8ywqp8ys"]
+[gd_scene load_steps=16 format=3 uid="uid://bqxvn8ywqp8ys"]
 
 [ext_resource type="Script" uid="uid://5o1k5b8ewge7" path="res://scripts/weekend/weekend_main.gd" id="1_0hdqr"]
 [ext_resource type="Texture2D" uid="uid://daa1lck12jxac" path="res://assets/weekend/UI/weekend_backgroung.png" id="2_xk6gm"]
@@ -14,6 +14,7 @@
 [ext_resource type="Texture2D" uid="uid://bcrw33bsk3cvy" path="res://assets/weekend/UI/star.png" id="12_staricon"]
 [ext_resource type="Texture2D" uid="uid://d1iw48b42fv22" path="res://assets/workday_main_scene/ui/card_side_bar_char.png" id="13_cardsidechar"]
 [ext_resource type="Texture2D" uid="uid://cjxh03jhqdync" path="res://assets/workday_main_scene/ui/card_side_bar_others.png" id="14_cardsideothers"]
+[ext_resource type="PackedScene" uid="uid://dr1locthw2qwm" path="res://scenes/ui/coins_display.tscn" id="15_coinsui"]
 
 [node name="WeekendMain" type="Control"]
 layout_mode = 3
@@ -64,6 +65,12 @@ texture = ExtResource("3_wvx68")
 
 [node name="UILayer" type="CanvasLayer" parent="."]
 
+[node name="CoinsDisplay" parent="UILayer" instance=ExtResource("15_coinsui")]
+offset_left = 72.0
+offset_top = 72.0
+offset_right = 192.0
+offset_bottom = 112.0
+
 [node name="TimeDisplay" parent="UILayer" instance=ExtResource("4_timeui")]
 offset_left = 1566.0
 offset_top = 42.0
@@ -102,7 +109,6 @@ offset_right = 55.0
 offset_bottom = 87.0
 
 [node name="VBoxContainer" parent="UILayer/PrivilegeCardDisplay" index="1"]
-anchors_preset = -1
 anchor_left = 0.279
 anchor_top = 0.39
 anchor_right = 1.046

@@ -10,6 +10,10 @@ signal popup_closed
 @onready var reject_button = $PopupPanel/HSplitContainer/LeftPanel/ButtonsContainer/RejectButton
 @onready var close_button = $PopupPanel/CloseButton
 @onready var attributes_bar = $PopupPanel/HSplitContainer/LeftPanel/AttributesBar
+@onready var buttons_container = $PopupPanel/HSplitContainer/LeftPanel/ButtonsContainer
+@onready var attribute_info_container = $PopupPanel/HSplitContainer/LeftPanel/AttributeInfoContainer
+@onready var current_attribute_label = $PopupPanel/HSplitContainer/LeftPanel/AttributeInfoContainer/CurrentAttributeLabel
+@onready var requirement_status_label = $PopupPanel/HSplitContainer/LeftPanel/AttributeInfoContainer/RequirementStatusLabel
 
 # 卡槽系统相关节点
 @onready var slots_container = $PopupPanel/HSplitContainer/RightPanel/SlotsPanelContainer/SlotsContainer
@@ -22,12 +26,22 @@ const CardDisplayPanelScene = preload("res://scenes/ui/card_display_panel.tscn")
 const ItemCardDisplayPanelScene = preload("res://scenes/ui/item_card_display_panel.tscn")
 const CardDetailPanelScene = preload("res://scenes/ui/card_detail_panel.tscn")
 
+# 预加载警告弹窗场景
+const IncompleteEventWarningScene = preload("res://scenes/ui/incomplete_event_warning.tscn")
+
 var current_event_id = -1
+var current_event: Dictionary = {}
 var slot_items: Array = []  # 存储卡槽项目引用
 
 # 卡片选择状态管理
 var current_selecting_slot: EventSlotData = null
 var active_card_panel = null
+
+# 警告弹窗管理
+var warning_popup = null
+
+# 管理器引用
+var event_slot_manager = null
 
 # 属性映射系统
 var attribute_mapping = {
@@ -45,6 +59,9 @@ func _ready():
 	# 连接按钮信号
 	accept_button.pressed.connect(_on_accept_button_pressed)
 	close_button.pressed.connect(_on_close_button_pressed)
+	
+	# 初始化管理器引用
+	event_slot_manager = EventSlotManager
 	
 	# 连接EventSlotManager信号
 	if EventSlotManager:
@@ -91,6 +108,7 @@ func _debug_ui_visibility():
 # 显示事件弹窗
 func show_event(event_data: Dictionary):
 	current_event_id = event_data.event_id
+	current_event = event_data
 	
 	# 设置标题和内容
 	title_label.text = event_data.title
@@ -118,6 +136,9 @@ func show_event(event_data: Dictionary):
 		_setup_attributes_display(event_data.global_check)
 	else:
 		_clear_attributes_display()
+	
+	# 设置属性信息显示
+	_setup_attribute_info_display()
 	
 	# 加载卡槽系统
 	_load_event_slots(event_data.event_id)
@@ -209,8 +230,8 @@ func _on_slot_clicked(event_id: int, slot_id: int, slot_data: EventSlotData):
 		print("EventPopup: 卡槽无允许的卡牌类型")
 		return
 	
-	# 按照用户需求的顺序：先角色卡，再特权卡，最后情报卡
-	var card_type_priority = ["角色卡", "特权卡", "情报卡"]
+	# 按照用户需求的顺序：先角色卡，再特权卡，然后情报卡，最后金币卡
+	var card_type_priority = ["角色卡", "特权卡", "情报卡", "金币卡"]
 	var first_allowed_type = ""
 	
 	for card_type in card_type_priority:
@@ -236,6 +257,8 @@ func _open_card_selection_panel(card_type: String, slot_data: EventSlotData):
 			_open_item_card_panel(slot_data)
 		"特权卡":
 			_open_privilege_card_panel(slot_data)
+		"金币卡":
+			_open_coin_selection_panel(slot_data)
 		_:
 			print("EventPopup: 未知卡牌类型: ", card_type)
 
@@ -332,6 +355,76 @@ func _open_privilege_card_panel(slot_data: EventSlotData):
 		var required_cards = specific_requirements["特权卡"]
 		print("EventPopup: 特权卡要求: ", required_cards)
 
+# 打开金币选择面板
+func _open_coin_selection_panel(slot_data: EventSlotData):
+	print("EventPopup: 打开金币选择面板")
+	
+	current_selecting_slot = slot_data
+	
+	# 直接处理金币放置，不需要打开选择面板
+	_handle_coin_placement(slot_data)
+
+# 处理金币放置逻辑
+func _handle_coin_placement(slot_data: EventSlotData):
+	print("EventPopup: 处理金币放置")
+	
+	# 获取所需金币数量
+	var required_amount = _get_required_coin_amount(slot_data)
+	if required_amount <= 0:
+		print("EventPopup: 错误 - 无法获取所需金币数量")
+		return
+	
+	# 验证金币是否足够
+	if not _validate_coin_requirements(required_amount):
+		print("EventPopup: 金币不足 - 需要 ", required_amount, " 当前 ", AttributeManager.get_coins())
+		_show_insufficient_coins_warning(required_amount)
+		return
+	
+	# 放置金币卡
+	var success = EventSlotManager.place_card_in_slot(
+		current_event_id, 
+		slot_data.slot_id, 
+		"金币卡", 
+		str(required_amount),
+		null
+	)
+	
+	if success:
+		print("EventPopup: 金币卡放置成功")
+		# 刷新卡槽显示
+		_refresh_slot_item(slot_data)
+		# 更新禁用状态
+		_update_slots_disabled_state()
+	else:
+		print("EventPopup: 金币卡放置失败")
+	
+	# 清理选择状态
+	current_selecting_slot = null
+
+# 获取所需金币数量
+func _get_required_coin_amount(slot_data: EventSlotData) -> int:
+	var requirements = slot_data.get_specific_card_requirements()
+	if requirements.has("金币卡") and requirements["金币卡"] is Array:
+		var amounts = requirements["金币卡"]
+		if amounts.size() > 0:
+			return amounts[0].to_int()
+	return 0
+
+# 验证金币是否足够
+func _validate_coin_requirements(required_amount: int) -> bool:
+	if not AttributeManager:
+		print("EventPopup: 警告 - AttributeManager未找到")
+		return false
+	
+	return AttributeManager.has_enough_coins(required_amount)
+
+# 显示金币不足警告
+func _show_insufficient_coins_warning(required_amount: int):
+	print("EventPopup: 显示金币不足警告 - 需要 ", required_amount, " 当前 ", AttributeManager.get_coins())
+	
+	# 可以在这里添加警告弹窗显示逻辑
+	# 暂时使用简单的控制台输出
+
 # 处理卡片选择
 func _on_card_selected(card_type: String, card_id: String, card_data):
 	print("EventPopup: 接收到卡片选择 - ", card_type, "[", card_id, "]")
@@ -385,19 +478,26 @@ func _refresh_slot_item(slot_data: EventSlotData):
 
 # 查找UI层
 func _find_ui_layer():
-	# 尝试找到UILayer
+	# 方法1：尝试按名称查找
 	var ui_layer = get_tree().root.find_child("UILayer", true, false)
 	if ui_layer:
 		return ui_layer
-	
-	# 回退方案：寻找CanvasLayer
+		
+	# 方法2：尝试按类型查找第一个CanvasLayer
 	var canvas_layers = []
-	_find_canvas_layers_recursive(get_tree().root, canvas_layers)
 	
+	# 从根节点开始搜索所有CanvasLayer
+	var root = get_tree().root
+	for child in root.get_children():
+		if child is CanvasLayer:
+			canvas_layers.append(child)
+		_find_canvas_layers_recursive(child, canvas_layers)
+	
+	# 按layer属性排序，选择layer值最大的
 	if canvas_layers.size() > 0:
 		canvas_layers.sort_custom(func(a, b): return a.layer > b.layer)
 		return canvas_layers[0]
-	
+		
 	return null
 
 # 递归查找CanvasLayer节点
@@ -409,13 +509,14 @@ func _find_canvas_layers_recursive(node, result_array):
 
 # 卡槽状态变化处理
 func _on_slots_status_changed(event_id: int):
-	print("EventPopup: 卡槽状态发生变化 - 事件", event_id)
-	
-	# 重新计算属性贡献
-	_update_attribute_display_with_slots()
-	
-	# 检查完成条件
-	_check_completion_status()
+	if event_id == current_event_id:
+		print("EventPopup: 卡槽状态变化，更新完成状态检查")
+		# 实时更新完成状态
+		_check_completion_status()
+		# 更新属性显示
+		_update_attribute_display_with_slots()
+		# 更新属性信息显示
+		_update_current_attributes_display()
 
 # 更新属性显示，包含卡槽贡献
 func _update_attribute_display_with_slots():
@@ -433,15 +534,59 @@ func _check_completion_status():
 	if not EventSlotManager or current_event_id <= 0:
 		return
 	
-	var can_complete = EventSlotManager.are_required_slots_filled(current_event_id)
+	var completion_readiness = EventSlotManager.check_event_completion_readiness(current_event_id)
 	
 	# 根据完成条件更新确认按钮状态
-	if can_complete:
+	if completion_readiness.can_complete:
 		accept_button.disabled = false
 		accept_button.text = "确认"
+		accept_button.modulate = Color.WHITE
 	else:
-		accept_button.disabled = true
-		accept_button.text = "确认 (需要填充必需卡槽)"
+		accept_button.disabled = false  # 不禁用按钮，而是在点击时显示警告
+		accept_button.text = "确认 (" + str(completion_readiness.missing_required_slots.size()) + " 个必需卡槽未填充)"
+		accept_button.modulate = Color(1.0, 0.8, 0.8, 1.0)  # 浅红色提示
+
+# 验证事件完成条件
+func _validate_event_completion() -> bool:
+	if not EventSlotManager or current_event_id <= 0:
+		return true  # 如果没有卡槽系统，允许完成
+	
+	var completion_readiness = EventSlotManager.check_event_completion_readiness(current_event_id)
+	
+	if completion_readiness.can_complete:
+		return true
+	else:
+		# 显示未完成警告
+		_show_incomplete_warning(completion_readiness.missing_required_slots)
+		return false
+
+# 显示未完成警告弹窗
+func _show_incomplete_warning(missing_slots: Array):
+	print("EventPopup: 显示未完成警告 - 缺失", missing_slots.size(), "个必需卡槽")
+	
+	# 创建警告弹窗实例（如果不存在）
+	if not warning_popup:
+		warning_popup = IncompleteEventWarningScene.instantiate()
+		
+		# 找到UI层并添加警告弹窗
+		var ui_layer = _find_ui_layer()
+		if ui_layer:
+			ui_layer.add_child(warning_popup)
+			warning_popup.z_index = 1002  # 确保在EventPopup之上
+		else:
+			get_tree().root.add_child(warning_popup)
+			warning_popup.z_index = 1002
+		
+		# 连接信号
+		warning_popup.warning_closed.connect(_on_warning_popup_closed)
+	
+	# 显示警告
+	warning_popup.show_warning(current_event_id, missing_slots)
+
+# 处理警告弹窗关闭
+func _on_warning_popup_closed():
+	print("EventPopup: 警告弹窗已关闭")
+	# 可以在这里添加额外的处理逻辑
 
 # 设置属性展示
 func _setup_attributes_display(global_check: Dictionary):
@@ -612,15 +757,20 @@ func hide_popup():
 	
 	# 清空卡槽项目
 	_clear_all_slots()
+	
+	# 清理警告弹窗
+	_cleanup_warning_popup()
 
 # 按钮回调
 func _on_accept_button_pressed():
-	# 在确认前检查卡槽完成状态
-	if EventSlotManager and current_event_id > 0:
-		if not EventSlotManager.are_required_slots_filled(current_event_id):
-			print("EventPopup: 无法完成事件 - 必需卡槽未填充")
-			return
+	print("EventPopup: 确认按钮被点击 - 事件", current_event_id)
 	
+	# 验证事件完成条件
+	if not _validate_event_completion():
+		print("EventPopup: 事件完成条件不满足，显示警告")
+		return
+	
+	print("EventPopup: 事件完成条件满足，发射完成信号")
 	option_selected.emit(1, current_event_id)
 	hide_popup()
 
@@ -644,6 +794,8 @@ func _on_slots_updated_from_manager(event_id: int):
 		# 刷新所有卡槽显示，包括禁用状态
 		_refresh_all_slots()
 		_update_slots_disabled_state()
+		# 更新属性信息显示
+		_update_current_attributes_display()
 
 # 刷新所有卡槽显示
 func _refresh_all_slots():
@@ -665,3 +817,264 @@ func _update_slots_disabled_state():
 			if slot_data:
 				var should_disable = slot_data.slot_id in disabled_slots
 				item.set_disabled_state(should_disable)
+
+# 清理警告弹窗
+func _cleanup_warning_popup():
+	if warning_popup and is_instance_valid(warning_popup):
+		if warning_popup.is_showing():
+			warning_popup.hide_warning()
+		warning_popup.queue_free()
+		warning_popup = null
+
+# 设置属性信息显示
+func _setup_attribute_info_display():
+	if not current_event or not current_event.has("global_check"):
+		attribute_info_container.visible = false
+		print("EventPopup: 属性信息显示 - 事件无global_check数据，隐藏容器")
+		return
+	
+	# 解析global_check获取属性要求
+	var attribute_requirements = _parse_global_check(current_event.global_check)
+	if attribute_requirements.is_empty():
+		attribute_info_container.visible = false
+		print("EventPopup: 属性信息显示 - 无属性检定要求，隐藏容器")
+		return
+	
+	attribute_info_container.visible = true
+	print("EventPopup: 属性信息显示 - 显示容器，检定属性数量:", attribute_requirements.size())
+	_update_current_attributes_display()
+
+# 更新当前属性显示
+func _update_current_attributes_display():
+	if not current_event or not current_event.has("global_check"):
+		return
+	
+	# 解析global_check获取属性要求
+	var attribute_requirements = _parse_global_check(current_event.global_check)
+	if attribute_requirements.is_empty():
+		return
+	
+	# 获取事件要求的属性列表
+	var required_attributes = []
+	for req in attribute_requirements:
+		required_attributes.append(req.attribute)
+	
+	var total_attributes = _calculate_total_attributes_for_event(required_attributes)
+	print("EventPopup: 属性信息显示 - 当前总属性:", total_attributes)
+	
+	# 如果只有一个属性检定，显示详细信息
+	if attribute_requirements.size() == 1:
+		var req = attribute_requirements[0]
+		var check_type = req.attribute
+		var requirement_threshold = req.threshold
+		
+		# 显示当前累积属性值
+		var current_value = total_attributes.get(check_type, 0)
+		current_attribute_label.text = "当前%s: %d" % [_get_attribute_display_name(check_type), current_value]
+		
+		# 显示检定状态
+		var requirement_status = _check_single_requirement_status(check_type, current_value, requirement_threshold)
+		requirement_status_label.text = "检定状态: %s" % requirement_status
+		print("EventPopup: 属性信息显示 - 单属性检定 %s: %d/%d" % [check_type, current_value, requirement_threshold])
+	else:
+		# 多属性检定，显示汇总信息
+		var display_text = "多属性检定: "
+		var status_parts = []
+		
+		for req in attribute_requirements:
+			var attr_name = req.attribute
+			var threshold = req.threshold
+			var current_value = total_attributes.get(attr_name, 0)
+			var attr_display_name = _get_attribute_display_name(attr_name)
+			
+			display_text += "%s(%d) " % [attr_display_name, current_value]
+			
+			if current_value >= threshold:
+				status_parts.append("✓%s" % attr_display_name)
+			else:
+				status_parts.append("✗%s(%d/%d)" % [attr_display_name, current_value, threshold])
+		
+		current_attribute_label.text = display_text.strip()
+		requirement_status_label.text = "检定状态: " + " ".join(status_parts)
+		print("EventPopup: 属性信息显示 - 多属性检定:", status_parts)
+
+# 计算总属性值（基础属性 + 卡槽贡献）- 旧版本，保留兼容性
+func _calculate_total_attributes() -> Dictionary:
+	var total_attributes = {}
+	
+	# 获取基础属性(overall属性)
+	if AttributeManager:
+		var base_attributes = AttributeManager.get_all_attributes()
+		for attr_name in base_attributes:
+			total_attributes[attr_name] = base_attributes[attr_name]
+		print("EventPopup: 属性计算 - 基础属性:", base_attributes)
+	
+	# 获取卡槽贡献 - 使用可靠的calculate_event_slot_attributes方法
+	if event_slot_manager and current_event_id > 0:
+		var slot_attributes = event_slot_manager.calculate_event_slot_attributes(current_event_id)
+		print("EventPopup: 属性计算 - 卡槽原始属性:", slot_attributes)
+		
+		# 将卡槽basic属性映射到overall检定属性系统
+		var mapped_slot_attributes = _map_slot_attributes_to_check_attributes(slot_attributes)
+		print("EventPopup: 属性计算 - 卡槽映射后属性:", mapped_slot_attributes)
+		
+		# 合并卡槽贡献到总属性
+		for attr_name in mapped_slot_attributes:
+			if total_attributes.has(attr_name):
+				total_attributes[attr_name] += mapped_slot_attributes[attr_name]
+			else:
+				total_attributes[attr_name] = mapped_slot_attributes[attr_name]
+	
+	print("EventPopup: 属性计算 - 最终总属性:", total_attributes)
+	return total_attributes
+
+# 根据事件要求的属性计算总属性值（基础属性 + 卡槽贡献）
+func _calculate_total_attributes_for_event(required_attributes: Array) -> Dictionary:
+	var total_attributes = {}
+	
+	# 定义基础属性列表
+	var basic_attributes = ["social", "resistance", "innovation", "execution", "physical"]
+	var global_attributes = ["power", "reputation", "piety"]
+	
+	# 判断事件要求的是基础属性还是全局属性
+	var requires_basic_attributes = false
+	for attr in required_attributes:
+		if attr in basic_attributes:
+			requires_basic_attributes = true
+			break
+	
+	print("EventPopup: 属性计算 - 事件要求属性:", required_attributes)
+	print("EventPopup: 属性计算 - 需要基础属性:", requires_basic_attributes)
+	
+	if requires_basic_attributes:
+		# 事件要求基础属性，直接累加基础属性
+		print("EventPopup: 属性计算 - 使用基础属性计算模式")
+		
+		# 初始化基础属性（玩家基础值为0）
+		for attr in basic_attributes:
+			total_attributes[attr] = 0
+		
+		# 获取卡槽贡献的基础属性
+		if event_slot_manager and current_event_id > 0:
+			var slot_attributes = event_slot_manager.calculate_event_slot_attributes(current_event_id)
+			print("EventPopup: 属性计算 - 卡槽基础属性:", slot_attributes)
+			
+			# 直接累加卡槽贡献，不进行映射
+			for attr_name in slot_attributes:
+				if attr_name in basic_attributes:
+					total_attributes[attr_name] = total_attributes.get(attr_name, 0) + slot_attributes[attr_name]
+			
+			print("EventPopup: 属性计算 - 基础属性累加结果:", total_attributes)
+	else:
+		# 事件要求全局属性，使用映射逻辑
+		print("EventPopup: 属性计算 - 使用全局属性计算模式")
+		
+		# 获取基础属性(overall属性)
+		if AttributeManager:
+			var base_attributes = AttributeManager.get_all_attributes()
+			for attr_name in base_attributes:
+				total_attributes[attr_name] = base_attributes[attr_name]
+			print("EventPopup: 属性计算 - 基础属性:", base_attributes)
+		
+		# 获取卡槽贡献并映射到全局属性
+		if event_slot_manager and current_event_id > 0:
+			var slot_attributes = event_slot_manager.calculate_event_slot_attributes(current_event_id)
+			print("EventPopup: 属性计算 - 卡槽原始属性:", slot_attributes)
+			
+			# 将卡槽basic属性映射到overall检定属性系统
+			var mapped_slot_attributes = _map_slot_attributes_to_check_attributes(slot_attributes)
+			print("EventPopup: 属性计算 - 卡槽映射后属性:", mapped_slot_attributes)
+			
+			# 合并卡槽贡献到总属性
+			for attr_name in mapped_slot_attributes:
+				if total_attributes.has(attr_name):
+					total_attributes[attr_name] += mapped_slot_attributes[attr_name]
+				else:
+					total_attributes[attr_name] = mapped_slot_attributes[attr_name]
+	
+	print("EventPopup: 属性计算 - 最终总属性:", total_attributes)
+	return total_attributes
+
+# 将卡槽basic属性映射到overall检定属性系统
+func _map_slot_attributes_to_check_attributes(slot_attrs: Dictionary) -> Dictionary:
+	var check_attributes = {
+		"power": 0,
+		"reputation": 0,
+		"piety": 0
+	}
+	
+	# 属性映射规则（与EventSlotManager保持一致）:
+	# social + execution -> power (社交能力+执行力 = 权势)
+	# resistance + innovation -> reputation (抗压能力+创新能力 = 声望)
+	# physical -> piety (体魄 = 虔信)
+	
+	# 计算power: social + execution
+	var power_value = 0
+	if slot_attrs.has("social"):
+		power_value += slot_attrs["social"]
+	if slot_attrs.has("execution"):
+		power_value += slot_attrs["execution"]
+	check_attributes["power"] = power_value
+	
+	# 计算reputation: resistance + innovation
+	var reputation_value = 0
+	if slot_attrs.has("resistance"):
+		reputation_value += slot_attrs["resistance"]
+	if slot_attrs.has("innovation"):
+		reputation_value += slot_attrs["innovation"]
+	check_attributes["reputation"] = reputation_value
+	
+	# 计算piety: physical
+	var piety_value = 0
+	if slot_attrs.has("physical"):
+		piety_value += slot_attrs["physical"]
+	check_attributes["piety"] = piety_value
+	
+	print("EventPopup: 属性映射 - 原始:", slot_attrs, " -> 检定:", check_attributes)
+	return check_attributes
+
+# 检查单个属性检定要求满足状态
+func _check_single_requirement_status(check_type: String, current_value: int, requirement_threshold: int) -> String:
+	if current_value >= requirement_threshold:
+		return "满足要求 (%d/%d)" % [current_value, requirement_threshold]
+	else:
+		return "不满足 (%d/%d)" % [current_value, requirement_threshold]
+
+# 获取属性显示名称
+func _get_attribute_display_name(attribute_type: String) -> String:
+	match attribute_type:
+		"social":
+			return "社交"
+		"resistance":
+			return "抗压"
+		"innovation":
+			return "创新"
+		"execution":
+			return "执行"
+		"physical":
+			return "体魄"
+		"power":
+			return "权势"
+		"reputation":
+			return "声望"
+		"piety":
+			return "虔信"
+		# 保留旧属性名称以防兼容性问题
+		"technical":
+			return "技术"
+		"creative":
+			return "创意"
+		"intelligence":
+			return "智力"
+		"emotional_intelligence":
+			return "情商"
+		"physical_fitness":
+			return "体能"
+		"creativity":
+			return "创造力"
+		"leadership":
+			return "领导力"
+		"communication":
+			return "沟通力"
+		_:
+			return attribute_type

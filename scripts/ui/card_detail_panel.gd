@@ -304,12 +304,85 @@ func _refresh_cards_for_selection_mode():
 				var card_item = create_card_item(card)
 				cards_container.add_child(card_item)
 				
+				# 检查卡牌是否被占用并标记忙碌状态
+				_check_and_mark_busy_card(card_item, "特权卡", card.card_id)
+				
 				# 连接选择信号而非详情信号 - 使用正确的用户自定义信号连接方式
 				if card_item.has_signal("card_clicked"):
 					card_item.connect("card_clicked", _on_card_selected_for_slot.bind(card))
 				
 				# 添加视觉提示表明可选择
 				_add_selection_visual_hint(card_item)
+
+# 检查并标记忙碌状态的卡牌
+func _check_and_mark_busy_card(card_item, card_type: String, card_id: String):
+	var global_usage_manager = get_node_or_null("/root/GlobalCardUsageManager")
+	if not global_usage_manager:
+		return
+	
+	if global_usage_manager.is_card_used(card_type, card_id):
+		var usage_data = global_usage_manager.get_card_usage(card_type, card_id)
+		print("CardDetailPanel: 卡牌忙碌中 - ", card_type, "[", card_id, "] 在事件", usage_data.event_id)
+		
+		# 创建忙碌状态覆盖
+		_create_busy_overlay(card_item, usage_data)
+		
+		# 禁用卡牌交互
+		_disable_card_interaction(card_item)
+
+# 创建忙碌状态视觉覆盖
+func _create_busy_overlay(card_item, usage_data: CardUsageData):
+	# 创建覆盖层容器
+	var overlay = ColorRect.new()
+	overlay.name = "BusyOverlay"
+	overlay.color = Color(0, 0, 0, 0.6)  # 半透明黑色
+	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
+	# 设置覆盖层填满整个卡牌
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	
+	# 创建忙碌状态文本
+	var busy_label = Label.new()
+	busy_label.text = "忙碌中"
+	busy_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	busy_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	busy_label.add_theme_font_size_override("font_size", 24)
+	busy_label.add_theme_color_override("font_color", Color.WHITE)
+	busy_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
+	# 添加描述信息
+	var description_label = Label.new()
+	description_label.text = "在事件 " + str(usage_data.event_id) + " 中使用"
+	description_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	description_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	description_label.add_theme_font_size_override("font_size", 16)
+	description_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9, 1))
+	description_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
+	# 创建垂直布局容器
+	var vbox = VBoxContainer.new()
+	vbox.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	vbox.add_theme_constant_override("separation", 4)
+	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
+	vbox.add_child(busy_label)
+	vbox.add_child(description_label)
+	overlay.add_child(vbox)
+	
+	# 将覆盖层添加到卡牌
+	card_item.add_child(overlay)
+	
+	# 确保覆盖层在最上层
+	card_item.move_child(overlay, card_item.get_child_count() - 1)
+
+# 禁用卡牌交互
+func _disable_card_interaction(card_item):
+	# 找到卡牌中的按钮并禁用
+	for child in card_item.get_children():
+		if child is Button:
+			child.disabled = true
+			child.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			break
 
 # 检查卡片是否被允许（基于特定卡牌要求）
 func _is_card_allowed(card_data) -> bool:
@@ -332,6 +405,16 @@ func _on_card_selected_for_slot(card_data):
 	if not is_in_selection_mode:
 		return
 	
+	# 检查卡牌是否被占用
+	var global_usage_manager = get_node_or_null("/root/GlobalCardUsageManager")
+	if global_usage_manager and global_usage_manager.is_card_used("特权卡", card_data.card_id):
+		var usage_data = global_usage_manager.get_card_usage("特权卡", card_data.card_id)
+		print("CardDetailPanel: 尝试选择忙碌中的卡牌 - ", card_data.card_id, " 在事件", usage_data.event_id)
+		
+		# 显示卡牌忙碌提示
+		_show_busy_card_warning(card_data.card_id, usage_data.event_id)
+		return
+	
 	print("CardDetailPanel: 选择模式下卡片被点击: ", card_data.get_display_name())
 	
 	# 发射选择信号
@@ -340,11 +423,38 @@ func _on_card_selected_for_slot(card_data):
 	# 关闭面板
 	_close_panel()
 
+# 显示卡牌忙碌警告
+func _show_busy_card_warning(card_id: String, event_id: int):
+	print("CardDetailPanel: 显示卡牌忙碌警告 - ", card_id, " 在事件", event_id)
+	# 这里可以显示一个简单的提示，或者发射信号给父级处理
+	# 目前只打印日志，实际项目中可以添加UI提示
+
 # 添加选择模式的视觉提示
 func _add_selection_visual_hint(card_item):
-	# 可以添加边框高亮、选择图标等视觉效果
-	# 这里简单地修改样式表或添加标识
-	pass
+	# 检查卡牌是否有忙碌覆盖层
+	var has_busy_overlay = card_item.get_node_or_null("BusyOverlay") != null
+	
+	if not has_busy_overlay:
+		# 为可选择的卡牌添加高亮边框
+		var highlight_border = ColorRect.new()
+		highlight_border.name = "SelectionHighlight"
+		highlight_border.color = Color.TRANSPARENT
+		highlight_border.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		
+		# 创建样式框架
+		var style_box = StyleBoxFlat.new()
+		style_box.border_color = Color(0.3, 0.8, 0.3, 0.8)  # 绿色边框
+		style_box.border_width_left = 3
+		style_box.border_width_right = 3
+		style_box.border_width_top = 3
+		style_box.border_width_bottom = 3
+		style_box.bg_color = Color.TRANSPARENT
+		
+		# 应用样式到卡牌（如果可能的话）
+		if card_item.has_method("add_theme_stylebox_override"):
+			card_item.add_theme_stylebox_override("panel", style_box)
+		
+		print("CardDetailPanel: 为卡牌添加选择高亮 - ", card_item.name)
 
 # 关闭面板
 func _close_panel():

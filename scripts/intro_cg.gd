@@ -112,7 +112,7 @@ func replace_label_with_richtext():
 		rich_label.add_theme_font_override("bold_italics_font", font)
 		
 		# 设置固定字体大小
-		var dialog_font_size = 25 # 原来是从FontManager获取
+		var dialog_font_size = 40 # 原来是从FontManager获取
 		rich_label.add_theme_font_size_override("normal_font_size", dialog_font_size)
 		rich_label.add_theme_font_size_override("bold_font_size", dialog_font_size)
 		rich_label.add_theme_font_size_override("italics_font_size", dialog_font_size)

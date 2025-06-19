@@ -141,4 +141,22 @@ func load_cards_data(data: Dictionary):
 		privilege_cards.append(card)
 	
 	cards_updated.emit()
-	print("Privilege Card Manager: 加载了 ", privilege_cards.size(), " 张特权卡") 
+	print("Privilege Card Manager: 加载了 ", privilege_cards.size(), " 张特权卡")
+
+# 根据ID获取特权卡
+func get_card_by_id(card_id) -> PrivilegeCard:
+	# 支持String和int类型的card_id
+	var target_id: String
+	if card_id is String:
+		target_id = card_id
+	elif card_id is int:
+		target_id = str(card_id)
+	else:
+		target_id = str(card_id)
+	
+	# 在privilege_cards数组中查找匹配的卡牌
+	for card in privilege_cards:
+		if card.card_id == target_id:
+			return card
+	
+	return null 

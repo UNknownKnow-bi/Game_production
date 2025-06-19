@@ -33,6 +33,13 @@ const WindowSettings = preload("res://scripts/workday_new/project_settings_handl
 var is_fullscreen = false
 
 func _ready():
+	print("WorkdayMain: 开始初始化")
+	
+	# 确认场景切换完成
+	if TimeManager:
+		print("WorkdayMain: 确认工作日场景切换完成")
+		TimeManager.confirm_scene_switched()
+	
 	# 应用推荐的项目设置
 	WindowSettings.apply_recommended_settings()
 	
@@ -57,9 +64,14 @@ func _ready():
 	# 初始化时间和特权卡系统
 	initialize_time_and_card_system()
 	
+	# 初始化全局卡牌使用管理器
+	initialize_global_card_usage_manager()
+	
 	# 添加简单的窗口大小变化处理
 	get_tree().get_root().size_changed.connect(Callable(self, "_on_window_size_changed_simple"))
 	_on_window_size_changed_simple()
+	
+	print("WorkdayMain: 初始化完成")
 
 # 设置所有元素的固定位置和大小
 func set_fixed_positions():
@@ -827,3 +839,156 @@ func validate_all_cards_consistency():
 	print("  一致卡片数: ", consistent_cards)
 	print("  修正卡片数: ", fixed_cards)
 	print("  最终一致性: ", (consistent_cards + fixed_cards), "/", total_cards)
+
+# 初始化全局卡牌使用管理器
+func initialize_global_card_usage_manager():
+	var global_usage_manager = get_node_or_null("/root/GlobalCardUsageManager")
+	if not global_usage_manager:
+		print("WorkdayMain: 警告 - GlobalCardUsageManager未初始化")
+		return
+	
+	# 连接时间系统的回合切换信号
+	if time_display and time_display.has_signal("round_ended"):
+		if not time_display.round_ended.is_connected(_on_round_ended):
+			time_display.round_ended.connect(_on_round_ended)
+			print("WorkdayMain: 连接回合结束信号成功")
+	
+	# 连接全局使用管理器的信号
+	if not global_usage_manager.round_usage_reset.is_connected(_on_round_usage_reset):
+		global_usage_manager.round_usage_reset.connect(_on_round_usage_reset)
+		print("WorkdayMain: 连接全局使用状态重置信号成功")
+	
+	print("WorkdayMain: 全局卡牌使用管理器初始化完成")
+
+# 处理回合结束事件
+func _on_round_ended(new_round: int):
+	print("WorkdayMain: 回合结束 - 当前回合:", new_round)
+	
+	# 收集需要检定的事件
+	var events_to_check = []
+	if EventManager:
+		# 检查延迟检定事件
+		if TimeManager:
+			var current_scene_type = TimeManager.get_current_scene_type()
+			EventManager.process_delayed_checks(new_round, current_scene_type)
+		
+		# 收集待检定事件
+		events_to_check = EventManager.collect_events_for_checking()
+	
+	if events_to_check.is_empty():
+		# 没有检定，直接推进回合（会触发场景切换和存档）
+		print("WorkdayMain: 没有事件需要检定，直接推进回合")
+		if TimeManager:
+			TimeManager.advance_round()
+	else:
+		# 有检定，先处理检定，检定完成后再推进回合
+		print("WorkdayMain: 发现 ", events_to_check.size(), " 个事件需要检定")
+		start_event_check_settlement(events_to_check, new_round)
+
+
+
+# 启动事件检定结算流程
+func start_event_check_settlement(events_to_check: Array, new_round: int):
+	print("WorkdayMain: 启动事件检定结算流程")
+	
+	# 创建检定结算界面（如果不存在）
+	if not has_node("UILayer/EventCheckSettlement"):
+		var settlement_scene = preload("res://scenes/workday_new/components/event_check_settlement.tscn")
+		var settlement_instance = settlement_scene.instantiate()
+		settlement_instance.name = "EventCheckSettlement"
+		
+		# 添加到UI层
+		var ui_layer = get_node("UILayer")
+		if ui_layer:
+			ui_layer.add_child(settlement_instance)
+			
+			# 连接完成信号
+			settlement_instance.settlement_completed.connect(_on_settlement_completed.bind(new_round))
+			
+			print("WorkdayMain: 事件检定结算界面已创建")
+		else:
+			print("WorkdayMain: 错误 - UILayer未找到")
+			# 如果创建失败，直接推进回合
+			if TimeManager:
+				TimeManager.advance_round()
+			return
+	
+	# 获取检定结算界面
+	var settlement_ui = get_node("UILayer/EventCheckSettlement")
+	if settlement_ui:
+		# 开始检定结算
+		settlement_ui.start_settlement(events_to_check)
+	else:
+		print("WorkdayMain: 错误 - 无法创建检定结算界面")
+		# 如果失败，直接推进回合
+		if TimeManager:
+			TimeManager.advance_round()
+
+# 检定结算完成回调
+func _on_settlement_completed(results: Array, new_round: int):
+	print("WorkdayMain: 事件检定结算完成，结果数量: ", results.size())
+	
+	# 处理检定结果
+	for result_data in results:
+		var event = result_data.event
+		var check_result = result_data.result
+		
+		if check_result:
+			print("WorkdayMain: 事件 ", event.event_name, " 检定结果: ", "成功" if check_result.is_successful else "失败")
+	
+	# 清理检定界面
+	var settlement_ui = get_node_or_null("UILayer/EventCheckSettlement")
+	if settlement_ui:
+		settlement_ui.queue_free()
+	
+	# 等待界面清理完成，然后推进回合
+	await get_tree().process_frame
+	
+	# 推进回合（会触发场景切换和存档）
+	if TimeManager:
+		print("WorkdayMain: 检定完成，推进回合")
+		TimeManager.advance_round()
+
+
+
+# 处理全局使用状态重置完成
+func _on_round_usage_reset():
+	print("WorkdayMain: 全局卡牌使用状态重置完成")
+	
+	# 刷新事件系统中的卡槽状态显示
+	if event_system and event_system.has_method("refresh_all_slot_displays"):
+		event_system.refresh_all_slot_displays()
+		print("WorkdayMain: 事件系统卡槽显示已刷新")
+	
+	# 如果有打开的卡牌选择面板，也需要刷新
+	_refresh_active_card_panels()
+
+# 刷新活跃的卡牌面板状态
+func _refresh_active_card_panels():
+	var ui_layer = get_node_or_null("UILayer")
+	if not ui_layer:
+		return
+	
+	# 查找并刷新卡牌显示面板
+	var card_display_panel = ui_layer.find_child("*CardDisplayPanel*", true, false)
+	if card_display_panel and card_display_panel.has_method("refresh_busy_states"):
+		card_display_panel.refresh_busy_states()
+		print("WorkdayMain: 卡牌显示面板忙碌状态已刷新")
+	
+	var item_card_display_panel = ui_layer.find_child("*ItemCardDisplayPanel*", true, false)
+	if item_card_display_panel and item_card_display_panel.has_method("refresh_busy_states"):
+		item_card_display_panel.refresh_busy_states()
+		print("WorkdayMain: 情报卡显示面板忙碌状态已刷新")
+	
+	var card_detail_panel = ui_layer.find_child("*CardDetailPanel*", true, false)
+	if card_detail_panel and card_detail_panel.has_method("refresh_busy_states"):
+		card_detail_panel.refresh_busy_states()
+		print("WorkdayMain: 特权卡详情面板忙碌状态已刷新")
+
+# 手动触发回合切换（测试用）
+func advance_to_next_round():
+	if time_display and time_display.has_method("advance_round"):
+		time_display.advance_round()
+		print("WorkdayMain: 手动触发回合切换")
+	else:
+		print("WorkdayMain: 警告 - 无法触发回合切换，时间显示组件不可用")
