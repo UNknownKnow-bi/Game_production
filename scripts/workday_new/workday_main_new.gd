@@ -33,13 +33,6 @@ const WindowSettings = preload("res://scripts/workday_new/project_settings_handl
 var is_fullscreen = false
 
 func _ready():
-	print("WorkdayMain: 开始初始化")
-	
-	# 确认场景切换完成
-	if TimeManager:
-		print("WorkdayMain: 确认工作日场景切换完成")
-		TimeManager.confirm_scene_switched()
-	
 	# 应用推荐的项目设置
 	WindowSettings.apply_recommended_settings()
 	
@@ -70,8 +63,6 @@ func _ready():
 	# 添加简单的窗口大小变化处理
 	get_tree().get_root().size_changed.connect(Callable(self, "_on_window_size_changed_simple"))
 	_on_window_size_changed_simple()
-	
-	print("WorkdayMain: 初始化完成")
 
 # 设置所有元素的固定位置和大小
 func set_fixed_positions():
@@ -754,6 +745,21 @@ func _on_detail_panel_closed():
 func _on_scene_type_changed(new_scene_type: String):
 	print("Workday Main: 场景类型变化到 ", new_scene_type)
 	
+	# 检查是否有检定正在进行
+	if TimeManager and TimeManager.get_settlement_status():
+		print("Workday Main: 检定正在进行中，暂停场景切换")
+		return
+	
+	# 改进的检定界面状态检查
+	var settlement_ui = get_node_or_null("UILayer/EventCheckSettlement")
+	if settlement_ui:
+		# 检查界面是否真的在显示且处于活跃状态
+		if settlement_ui.visible and not settlement_ui.is_queued_for_deletion():
+			print("Workday Main: 检定界面正在显示，暂停场景切换")
+			return
+		else:
+			print("Workday Main: 检定界面存在但不活跃，允许场景切换")
+	
 	# 如果切换到周末，则切换场景
 	if new_scene_type == "weekend":
 		print("Workday Main: 切换到周末场景")
@@ -864,32 +870,58 @@ func initialize_global_card_usage_manager():
 func _on_round_ended(new_round: int):
 	print("WorkdayMain: 回合结束 - 当前回合:", new_round)
 	
-	# 收集需要检定的事件
+	# 1. 在回合结束时检查延迟检定事件（Duration Round检定逻辑）
+	var delayed_events_count = 0
+	if EventManager and TimeManager:
+		var current_scene_type = TimeManager.get_current_scene_type()
+		delayed_events_count = EventManager.process_delayed_checks(new_round, current_scene_type)
+		print("WorkdayMain: 延迟检定事件检查完成 - 发现", delayed_events_count, "个事件到达检定时间")
+	
+	# 2. 收集需要检定的事件（pending_check状态的事件）
 	var events_to_check = []
 	if EventManager:
-		# 检查延迟检定事件
-		if TimeManager:
-			var current_scene_type = TimeManager.get_current_scene_type()
-			EventManager.process_delayed_checks(new_round, current_scene_type)
-		
-		# 收集待检定事件
 		events_to_check = EventManager.collect_events_for_checking()
 	
 	if events_to_check.is_empty():
-		# 没有检定，直接推进回合（会触发场景切换和存档）
-		print("WorkdayMain: 没有事件需要检定，直接推进回合")
-		if TimeManager:
-			TimeManager.advance_round()
+		# 没有事件需要检定，正常进入下一回合
+		print("WorkdayMain: 没有事件需要检定，正常进入下一回合")
+		proceed_to_next_round_normal(new_round)
 	else:
-		# 有检定，先处理检定，检定完成后再推进回合
-		print("WorkdayMain: 发现 ", events_to_check.size(), " 个事件需要检定")
+		# 有事件需要检定，启动检定结算流程
+		print("WorkdayMain: 发现 ", events_to_check.size(), " 个事件需要检定，启动检定结算流程")
 		start_event_check_settlement(events_to_check, new_round)
 
-
+# 正常进入下一回合（无检定）
+func proceed_to_next_round_normal(new_round: int):
+	print("WorkdayMain: 正常回合切换流程")
+	
+	# 确保TimeManager状态一致
+	if TimeManager:
+		TimeManager.ensure_scene_consistency()
+	
+	# 自动保存游戏状态
+	if GameSaveManager:
+		print("WorkdayMain: 执行回合结束自动保存")
+		GameSaveManager.save_game()
+	else:
+		print("WorkdayMain: 警告 - GameSaveManager未找到，跳过自动保存")
+	
+	var global_usage_manager = get_node_or_null("/root/GlobalCardUsageManager")
+	if global_usage_manager:
+		# 重置全局卡牌使用状态
+		global_usage_manager.reset_round_usage(new_round)
+		print("WorkdayMain: 全局卡牌使用状态已重置")
+	else:
+		print("WorkdayMain: 警告 - 无法找到GlobalCardUsageManager")
 
 # 启动事件检定结算流程
 func start_event_check_settlement(events_to_check: Array, new_round: int):
 	print("WorkdayMain: 启动事件检定结算流程")
+	
+	# 通知TimeManager检定开始
+	if TimeManager:
+		TimeManager.set_settlement_in_progress(true)
+		print("WorkdayMain: 已通知TimeManager检定开始")
 	
 	# 创建检定结算界面（如果不存在）
 	if not has_node("UILayer/EventCheckSettlement"):
@@ -908,9 +940,10 @@ func start_event_check_settlement(events_to_check: Array, new_round: int):
 			print("WorkdayMain: 事件检定结算界面已创建")
 		else:
 			print("WorkdayMain: 错误 - UILayer未找到")
-			# 如果创建失败，直接推进回合
+			# 如果创建失败，恢复TimeManager状态
 			if TimeManager:
-				TimeManager.advance_round()
+				TimeManager.set_settlement_in_progress(false)
+			proceed_to_next_round_normal(new_round)
 			return
 	
 	# 获取检定结算界面
@@ -920,9 +953,10 @@ func start_event_check_settlement(events_to_check: Array, new_round: int):
 		settlement_ui.start_settlement(events_to_check)
 	else:
 		print("WorkdayMain: 错误 - 无法创建检定结算界面")
-		# 如果失败，直接推进回合
+		# 如果失败，恢复TimeManager状态
 		if TimeManager:
-			TimeManager.advance_round()
+			TimeManager.set_settlement_in_progress(false)
+		proceed_to_next_round_normal(new_round)
 
 # 检定结算完成回调
 func _on_settlement_completed(results: Array, new_round: int):
@@ -935,21 +969,76 @@ func _on_settlement_completed(results: Array, new_round: int):
 		
 		if check_result:
 			print("WorkdayMain: 事件 ", event.event_name, " 检定结果: ", "成功" if check_result.is_successful else "失败")
+		else:
+			print("WorkdayMain: 事件 ", event.event_name, " 没有检定结果")
 	
-	# 清理检定界面
+	# 确保TimeManager状态一致
+	if TimeManager:
+		TimeManager.ensure_scene_consistency()
+	
+	# 自动保存游戏状态
+	if GameSaveManager:
+		print("WorkdayMain: 执行检定结算后自动保存")
+		GameSaveManager.save_game()
+	else:
+		print("WorkdayMain: 警告 - GameSaveManager未找到，跳过自动保存")
+	
+	# 重置全局卡牌使用状态
+	var global_usage_manager = get_node_or_null("/root/GlobalCardUsageManager")
+	if global_usage_manager:
+		global_usage_manager.reset_round_usage(new_round)
+		print("WorkdayMain: 全局卡牌使用状态已重置")
+	
+	# 强制清理检定界面，确保界面完全移除
 	var settlement_ui = get_node_or_null("UILayer/EventCheckSettlement")
 	if settlement_ui:
-		settlement_ui.queue_free()
+		print("WorkdayMain: 强制移除检定界面")
+		settlement_ui.queue_free()  # 彻底删除节点而不是隐藏
 	
-	# 等待界面清理完成，然后推进回合
-	await get_tree().process_frame
+	# 延迟通知TimeManager，确保界面状态更新完成
+	print("WorkdayMain: 延迟通知TimeManager检定完成")
+	await get_tree().process_frame  # 等待一帧确保界面状态更新
 	
-	# 推进回合（会触发场景切换和存档）
+	# 通知TimeManager检定完成 - 这将触发延迟的场景切换
 	if TimeManager:
-		print("WorkdayMain: 检定完成，推进回合")
-		TimeManager.advance_round()
+		print("WorkdayMain: 通知TimeManager检定完成，期待自动场景切换")
+		TimeManager.set_settlement_in_progress(false)
+		
+		# 添加延迟检查，确保场景切换被触发
+		call_deferred("_verify_scene_change_triggered", 2.0)
+	else:
+		print("WorkdayMain: 错误 - TimeManager不存在")
 
-
+# 验证场景切换是否被触发
+func _verify_scene_change_triggered(timeout: float):
+	# 检查节点是否仍在场景树中
+	if not is_inside_tree():
+		print("WorkdayMain: 节点已不在场景树中，取消验证")
+		return
+	
+	print("WorkdayMain: 开始验证场景切换状态")
+	
+	# 等待一段时间让TimeManager处理
+	await get_tree().create_timer(timeout).timeout
+	
+	# 再次检查节点是否仍在场景树中（等待期间可能被销毁）
+	if not is_inside_tree():
+		print("WorkdayMain: 等待期间节点已被销毁，停止验证")
+		return
+	
+	# 检查是否还在检定状态
+	if TimeManager and TimeManager.get_settlement_status():
+		print("WorkdayMain: 警告 - 检定状态未正确清除")
+		TimeManager.set_settlement_in_progress(false)
+	
+	# 检查场景是否应该切换但没有切换
+	if TimeManager and TimeManager.current_scene_type == "workday":
+		var expected_scene = "weekend" if TimeManager.current_round % 2 == 0 else "workday"
+		if expected_scene != "workday":
+			print("WorkdayMain: 场景切换未触发，手动执行场景切换")
+			TimeManager.trigger_scene_change()
+		else:
+			print("WorkdayMain: 场景状态正确，无需切换")
 
 # 处理全局使用状态重置完成
 func _on_round_usage_reset():

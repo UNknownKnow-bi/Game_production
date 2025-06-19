@@ -32,10 +32,15 @@ var is_clearing_save_data: bool = false
 @onready var quit_button = $UI/QuitButton
 @onready var game_title = $UI/GameTitle
 @onready var font_settings_button = $UI/SettingsPanel/FontSettingsButton
+@onready var game_start_options = $GameStartOptions
 
 func _ready():
 	# 连接视频播放完成信号
 	video_player.finished.connect(_on_video_finished)
+	
+	# 清理TimeManager旧存档文件
+	if SaveDataCleaner:
+		SaveDataCleaner.clean_time_manager_save_file()
 	
 	# 初始播放第一个视频
 	video_player.stream = video1
@@ -162,41 +167,30 @@ func _on_game_start_canceled():
 
 # 继续游戏
 func _continue_game():
-	print("Main Menu: 继续游戏")
-	
-	if not GameSaveManager:
-		print("Main Menu: 错误 - GameSaveManager未找到")
-		return
-	
-	var save_info = GameSaveManager.get_save_info()
-	if save_info.is_empty():
-		print("Main Menu: 没有找到存档信息")
-		return
-	
-	var scene_type = save_info.get("current_scene_type", "workday")
-	print("Main Menu: 存档场景类型: ", scene_type)
-	
-	# 验证场景类型的有效性
-	if scene_type != "workday" and scene_type != "weekend":
-		print("Main Menu: 警告 - 存档中的场景类型无效: ", scene_type, "，默认使用workday")
-		scene_type = "workday"
-	
-	# 加载游戏状态
-	var load_success = GameSaveManager.load_game()
-	if not load_success:
-		print("Main Menu: 加载游戏状态失败")
-		return
-	
-	print("Main Menu: 游戏状态加载成功，切换到场景: ", scene_type)
-	
-	# 根据场景类型切换到对应场景
-	if scene_type == "workday":
-		get_tree().change_scene_to_file("res://scenes/workday_new/workday_main_new.tscn")
-	elif scene_type == "weekend":
-		get_tree().change_scene_to_file("res://scenes/weekend/weekend_main.tscn")
+	print("继续游戏")
+	if GameSaveManager:
+		var success = GameSaveManager.load_game()
+		if success:
+			# 加载成功，确保TimeManager状态一致
+			if TimeManager:
+				TimeManager.ensure_scene_consistency()
+			
+			# 根据确认后的场景类型跳转
+			var current_scene_type = TimeManager.get_current_scene_type()
+			print("继续游戏：确认后的场景类型 =", current_scene_type)
+			
+			if current_scene_type == "weekend":
+				get_tree().change_scene_to_file("res://scenes/weekend/weekend_main.tscn")
+				print("继续游戏：跳转到周末场景")
+			else:
+				get_tree().change_scene_to_file("res://scenes/workday_new/workday_main_new.tscn")
+				print("继续游戏：跳转到工作日场景")
+		else:
+			_show_simple_message("错误", "加载存档失败，将开始新游戏")
+			_start_new_game()
 	else:
-		print("Main Menu: 未知场景类型: ", scene_type, "，默认加载工作日场景")
-		get_tree().change_scene_to_file("res://scenes/workday_new/workday_main_new.tscn")
+		_show_simple_message("错误", "存档管理器不可用，将开始新游戏")
+		_start_new_game()
 
 # 开始新游戏
 func _start_new_game():
@@ -298,12 +292,16 @@ func _on_clear_save_confirmed():
 	else:
 		print("MainMenu: 警告 - GameSaveManager未找到")
 	
+	# 清理TimeManager旧存档
+	var time_manager_clean_success = SaveDataCleaner.clean_time_manager_save_file()
+	print("MainMenu: TimeManager旧存档清理结果:", time_manager_clean_success)
+	
 	# 重置各个Manager到初始状态（保险措施）
 	_reset_managers_to_initial_state()
 	
 	is_clearing_save_data = false
 	
-	var overall_success = cleaner_success and game_save_success
+	var overall_success = cleaner_success and game_save_success and time_manager_clean_success
 	if overall_success:
 		_show_simple_message("成功", "存档数据已成功清空！\n重新开始游戏将从头开始。")
 	else:
@@ -323,6 +321,7 @@ func _reset_managers_to_initial_state():
 		TimeManager.current_scene_type = "workday"
 		TimeManager.workday_round_count = 0
 		TimeManager.weekend_round_count = 0
+		TimeManager.is_settlement_in_progress = false
 		print("MainMenu: TimeManager已重置")
 	
 	# 重置AttributeManager

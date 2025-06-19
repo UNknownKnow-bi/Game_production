@@ -83,6 +83,10 @@ func load_game() -> bool:
 
 # 收集所有组件的存档数据
 func collect_all_save_data() -> Dictionary:
+	# 先确保TimeManager状态一致
+	if TimeManager:
+		TimeManager.ensure_scene_consistency()
+	
 	var save_data = {
 		"version": SAVE_VERSION,
 		"save_timestamp": Time.get_unix_time_from_system(),
@@ -99,9 +103,10 @@ func collect_all_save_data() -> Dictionary:
 			"current_round": TimeManager.get_current_round(),
 			"current_scene_type": TimeManager.get_current_scene_type(),
 			"workday_round_count": TimeManager.workday_round_count,
-			"weekend_round_count": TimeManager.weekend_round_count
+			"weekend_round_count": TimeManager.weekend_round_count,
+			"is_settlement_in_progress": TimeManager.get_settlement_status()
 		}
-		print("GameSaveManager: 收集游戏进度数据 - 回合:", save_data.game_progress.current_round)
+		print("GameSaveManager: 收集游戏进度数据 - 回合:", save_data.game_progress.current_round, "场景:", save_data.game_progress.current_scene_type)
 	
 	# 收集玩家属性数据
 	if AttributeManager:
@@ -217,7 +222,11 @@ func distribute_save_data(save_data: Dictionary) -> bool:
 		TimeManager.set_scene_type(progress_data.get("current_scene_type", "workday"))
 		TimeManager.workday_round_count = progress_data.get("workday_round_count", 0)
 		TimeManager.weekend_round_count = progress_data.get("weekend_round_count", 0)
-		print("GameSaveManager: 分发游戏进度数据 - 回合:", progress_data.get("current_round", 1))
+		TimeManager.is_settlement_in_progress = progress_data.get("is_settlement_in_progress", false)
+		print("GameSaveManager: 分发游戏进度数据 - 回合:", progress_data.get("current_round", 1), "场景:", progress_data.get("current_scene_type", "workday"))
+		
+		# 额外验证场景一致性
+		TimeManager.ensure_scene_consistency()
 	
 	# 分发玩家属性数据
 	if save_data.has("player_attributes") and AttributeManager:
@@ -440,23 +449,18 @@ func delete_save() -> bool:
 	
 	return success
 
-# 应用退出时自动保存
+# 应用退出时保存
 func _on_quit_request():
-	print("GameSaveManager: 应用即将退出，执行自动保存")
+	print("GameSaveManager: 检测到退出请求，执行最终保存")
 	
-	# 确保TimeManager使用正确的当前场景类型进行存档
+	# 确保TimeManager状态一致性
 	if TimeManager:
-		# 如果有场景切换在进行中，先强制确认以保存正确状态
-		if TimeManager.is_scene_change_pending():
-			print("GameSaveManager: 检测到场景切换进行中，使用实际当前场景进行存档")
-		
-		# 强制保存TimeManager状态，确保使用实际场景类型
-		TimeManager.save_game_state()
-		print("GameSaveManager: TimeManager状态已保存")
+		print("GameSaveManager: 退出前确保TimeManager状态一致")
+		TimeManager.ensure_scene_consistency()
 	
-	# 执行完整的游戏保存
+	# 执行保存
 	save_game()
-	print("GameSaveManager: 退出前自动保存完成")
+	get_tree().quit()
 
 # 获取调试信息
 func get_debug_info() -> Dictionary:
